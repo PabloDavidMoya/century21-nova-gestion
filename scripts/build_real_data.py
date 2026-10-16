@@ -30,6 +30,7 @@ import openpyxl
 HERE = pathlib.Path(__file__).parent
 SRC = HERE.parent.parent / 'reporte-cierres'
 OUT = HERE.parent / 'assets' / 'js' / 'real-data.js'
+SEED_OUT = HERE.parent / 'backend' / 'seed-data.json'
 
 HOY = datetime.date(2026, 10, 15)
 MES_ACTUAL_IDX = 9  # Octubre
@@ -111,7 +112,7 @@ def load_antiguedad():
             label = '1 año' if anios == 1 else f'{anios} años'
         else:
             label = '1 mes' if meses == 1 else f'{meses} meses'
-        out[norm(nombre)] = label
+        out[norm(nombre)] = {'nombre': titlecase(nombre.strip()), 'antiguedad': label, 'ingresoFecha': ingreso.isoformat()}
     return out
 
 
@@ -142,6 +143,7 @@ def load_ledger(roster_keys):
         if not fecha_cobro or gross is None:
             continue
         rows.append({
+            'fecha': fecha_cobro.date().isoformat() if hasattr(fecha_cobro, 'date') else str(fecha_cobro),
             'mes_idx': fecha_cobro.month - 1,
             'gross': float(gross),
             'tipo_inmueble': tipo_inmueble,
@@ -172,6 +174,7 @@ def load_ledger(roster_keys):
         # cuando la oficina hizo las dos puntas (of_captadora == of_colocadora == C21 NOVA).
         ambas = (of_captadora == 'C21 NOVA' and of_colocadora == 'C21 NOVA')
         rows.append({
+            'fecha': fecha.date().isoformat() if hasattr(fecha, 'date') else str(fecha),
             'mes_idx': fecha.month - 1,
             'gross': gross,
             'tipo_inmueble': None,
@@ -187,6 +190,22 @@ def load_ledger(roster_keys):
 def build():
     roster = load_roster_metas()
     antiguedad = load_antiguedad()
+
+    # "Asignar metas" solo tiene a quien ya se le asigno una meta. La hoja
+    # "Asesores" (antiguedad) es la lista real del equipo y trae gente nueva
+    # que todavia no tiene meta asignada (p.ej. ingresos de agosto-septiembre).
+    # Se agregan tambien, con meta/GCI en 0 hasta que se les asigne.
+    for key, info in antiguedad.items():
+        if key in roster:
+            continue
+        roster[key] = {
+            'nombre': info['nombre'],
+            'estado': 'Activo',
+            'gciAcumulado': 0.0,
+            'lados': None,
+            'metaAnual': 0.0,
+        }
+
     ledger, sin_resolver = load_ledger(set(roster.keys()))
 
     # ---- Oficina: real mensual (jul-oct), meta mensual por estacionalidad ----
@@ -232,7 +251,7 @@ def build():
             'id': f'r{i+1}',
             'nombre': a['nombre'],
             'estado': a['estado'],
-            'antiguedad': antiguedad.get(key, '—'),
+            'antiguedad': antiguedad.get(key, {}).get('antiguedad', '—'),
             'metaAnual': a['metaAnual'],
             'gciAcumulado': a['gciAcumulado'],
             'metaAcumuladaAHoy': round(a['metaAnual'] * sum(ESTACIONALIDAD[:MES_ACTUAL_IDX + 1]), 2),
@@ -275,6 +294,29 @@ def build():
             'nota': 'El GCI por asesor es el acumulado del año a la fecha de la planilla, no hay desglose mensual real por asesor. Captaciones por asesor son solo jul-oct. Mensualidades siguen con datos de ejemplo (no hay planilla de pagos).',
         },
     }
+
+    # Para el seed de la base de datos real (backend/seed.js): el roster
+    # (con su key normalizada, para matchear nombre -> id al insertar) y el
+    # ledger de cierres crudo, sin agregar.
+    seed_data = {
+        'asesores': [
+            {
+                'key': key, 'nombre': a['nombre'], 'estado': a['estado'], 'metaAnual': a['metaAnual'],
+                'ingresoFecha': antiguedad.get(key, {}).get('ingresoFecha'),
+            }
+            for key, a in roster.items()
+        ],
+        'cierres': [
+            {
+                'fecha': mov['fecha'], 'grossUsd': mov['gross'], 'tipoInmueble': mov['tipo_inmueble'],
+                'tipoTransaccion': mov['tipo_transaccion'], 'ladosTipo': mov['lados_tipo'],
+                'captadorKey': mov['captador'] or None, 'colocadorKey': mov['colocador'] or None,
+            }
+            for mov in ledger
+        ],
+    }
+    SEED_OUT.parent.mkdir(parents=True, exist_ok=True)
+    SEED_OUT.write_text(json.dumps(seed_data, ensure_ascii=False, indent=2), encoding='utf-8')
 
     js = (
         '/* GENERADO por scripts/build_real_data.py a partir de las planillas reales.\n'

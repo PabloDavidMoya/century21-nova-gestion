@@ -4,8 +4,9 @@
 .DS_Store
 Thumbs.db
 node_modules/
-.env
 
-# Datos reales de la oficina (generados por scripts/build_real_data.py desde
-# las planillas de ../reporte-cierres): nunca se suben a GitHub.
-assets/js/real-data.js
+# Credenciales reales (contraseña de la base de datos, JWT secret): esto NO
+# se sube nunca, pase lo que pase con el resto. Si se filtra, cualquiera
+# puede conectarse directo a la base de producción.
+.env
+backend/.env

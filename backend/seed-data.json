@@ -1,0 +1,653 @@
+{
+  "asesores": [
+    {
+      "key": "ALEXANDRA VILLAMAYOR",
+      "nombre": "Alexandra Villamayor",
+      "estado": "Activo",
+      "metaAnual": 100000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "MIRTHA GONZALEZ",
+      "nombre": "Mirtha Gonzalez",
+      "estado": "Activo",
+      "metaAnual": 25000.0,
+      "ingresoFecha": "2026-06-06"
+    },
+    {
+      "key": "MARIAN SOSA",
+      "nombre": "Marian Sosa",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": "2025-07-16"
+    },
+    {
+      "key": "STEFANI MORINIGO",
+      "nombre": "Stefani Morinigo",
+      "estado": "Activo",
+      "metaAnual": 25000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "PAOLA PAREDES",
+      "nombre": "Paola Paredes",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "FEDERICO VILLAMAYOR",
+      "nombre": "Federico Villamayor",
+      "estado": "Activo",
+      "metaAnual": 10000.0,
+      "ingresoFecha": "2026-06-06"
+    },
+    {
+      "key": "JOSE FRANCO",
+      "nombre": "Jose Franco",
+      "estado": "Activo",
+      "metaAnual": 10000.0,
+      "ingresoFecha": "2026-01-26"
+    },
+    {
+      "key": "AIDA QUINATANA",
+      "nombre": "Aida Quinatana",
+      "estado": "Activo",
+      "metaAnual": 10000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "ESTELA AMARILLA",
+      "nombre": "Estela Amarilla",
+      "estado": "Activo",
+      "metaAnual": 35000.0,
+      "ingresoFecha": "2025-11-19"
+    },
+    {
+      "key": "CLAUDIA AMARILLA",
+      "nombre": "Claudia Amarilla",
+      "estado": "Activo",
+      "metaAnual": 25000.0,
+      "ingresoFecha": "2026-02-02"
+    },
+    {
+      "key": "MARIA ANTONELLA CACERES",
+      "nombre": "Maria Antonella Caceres",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "MELISSA BRITEZ",
+      "nombre": "Melissa Britez",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "LUIS VERA",
+      "nombre": "Luis Vera",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": "2026-02-06"
+    },
+    {
+      "key": "CINTHIA CARDOZO",
+      "nombre": "Cinthia Cardozo",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "ARTURO ELIZECHE",
+      "nombre": "Arturo Elizeche",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": "2026-03-18"
+    },
+    {
+      "key": "INGRID",
+      "nombre": "Ingrid",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "LUCIA",
+      "nombre": "Lucia",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "JOSE MARTINEZ",
+      "nombre": "Jose Martinez",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "MARIA PAZ PANE",
+      "nombre": "Maria Paz Pane",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": "2026-05-25"
+    },
+    {
+      "key": "EVELIN JARA",
+      "nombre": "Evelin Jara",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "ARIEL AYRTON ZENA",
+      "nombre": "Ariel Ayrton Zena",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "PAMELA FIGUEREDO",
+      "nombre": "Pamela Figueredo",
+      "estado": "Activo",
+      "metaAnual": 20000.0,
+      "ingresoFecha": null
+    },
+    {
+      "key": "STEFANIA MORINIGO",
+      "nombre": "Stefania Morinigo",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2025-06-06"
+    },
+    {
+      "key": "CINTHIA FISCHER",
+      "nombre": "Cinthia Fischer",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-03-04"
+    },
+    {
+      "key": "AIDA QUINTANA",
+      "nombre": "Aida Quintana",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2025-11-03"
+    },
+    {
+      "key": "PAMELA FIGUREDO",
+      "nombre": "Pamela Figuredo",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-06-02"
+    },
+    {
+      "key": "ELVIO BRUN",
+      "nombre": "Elvio Brun",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-09-01"
+    },
+    {
+      "key": "CARLOS RODRIGUEZ",
+      "nombre": "Carlos Rodriguez",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-08-18"
+    },
+    {
+      "key": "ROSSANA SOLOAGA",
+      "nombre": "Rossana Soloaga",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-08-06"
+    },
+    {
+      "key": "FATIMA SAMANIEGO",
+      "nombre": "Fatima Samaniego",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-09-24"
+    },
+    {
+      "key": "SOPHIA LOPEZ",
+      "nombre": "Sophia Lopez",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-09-30"
+    },
+    {
+      "key": "PABLO MOYA",
+      "nombre": "Pablo Moya",
+      "estado": "Activo",
+      "metaAnual": 0.0,
+      "ingresoFecha": "2026-09-29"
+    }
+  ],
+  "cierres": [
+    {
+      "fecha": "2026-07-21",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "INGRID VERA"
+    },
+    {
+      "fecha": "2026-07-13",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "MAYRA BOGADO"
+    },
+    {
+      "fecha": "2026-07-05",
+      "grossUsd": 3465.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "STEFANY MORINIGO"
+    },
+    {
+      "fecha": "2026-07-11",
+      "grossUsd": 216.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "FEDERICO VILLAMAYOR"
+    },
+    {
+      "fecha": "2026-07-11",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "JHONATAN FRETES"
+    },
+    {
+      "fecha": "2026-07-13",
+      "grossUsd": 216.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-07-21",
+      "grossUsd": 126.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Captación",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "SPORT CENTER"
+    },
+    {
+      "fecha": "2026-07-07",
+      "grossUsd": 1100.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-05",
+      "grossUsd": 1311.47,
+      "tipoInmueble": "Casa en condominio",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Captación",
+      "captadorKey": "FEDERICO VILLAMAYOR",
+      "colocadorKey": "NORMA VILLANUEVA C21FARO"
+    },
+    {
+      "fecha": "2026-07-07",
+      "grossUsd": 3189.0,
+      "tipoInmueble": "Quinta",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "DIANA RODAS",
+      "colocadorKey": "MIRTHA GONZALEZ"
+    },
+    {
+      "fecha": "2026-07-10",
+      "grossUsd": 2094.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "LUIS VERA"
+    },
+    {
+      "fecha": "2026-07-10",
+      "grossUsd": 207.0,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "LAURA ROMAN C21 FOCUS",
+      "colocadorKey": "ARIEL AYRTON ZENA"
+    },
+    {
+      "fecha": "2026-07-04",
+      "grossUsd": 450.81,
+      "tipoInmueble": "Duplex",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "FATIMA GONZALEZ REMAX",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-10",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-11",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-12",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-07-15",
+      "grossUsd": 252.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ESTELA AMARILLA"
+    },
+    {
+      "fecha": "2026-07-13",
+      "grossUsd": 252.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ALEXANDRA VILLAMAYOR"
+    },
+    {
+      "fecha": "2026-07-18",
+      "grossUsd": 252.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ESTELA AMARILLA"
+    },
+    {
+      "fecha": "2026-07-20",
+      "grossUsd": 252.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "LUIS VERA"
+    },
+    {
+      "fecha": "2026-07-20",
+      "grossUsd": 252.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-22",
+      "grossUsd": 360.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "FEDERICO VILLAMAYOR"
+    },
+    {
+      "fecha": "2026-07-23",
+      "grossUsd": 234.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-07-14",
+      "grossUsd": 3696.72,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "DAHIANA DIARTE",
+      "colocadorKey": "ESTELA AMARILLA"
+    },
+    {
+      "fecha": "2026-07-21",
+      "grossUsd": 297.54,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "LETICIA PERDOMO",
+      "colocadorKey": "ARIEL AYRTON ZENA"
+    },
+    {
+      "fecha": "2026-07-10",
+      "grossUsd": 168.07,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "DAVID GIARDINA",
+      "colocadorKey": "ALEXANDRA VILLAMAYOR"
+    },
+    {
+      "fecha": "2026-07-31",
+      "grossUsd": 1009.83,
+      "tipoInmueble": "Depósito / Tinglado / Nave",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ANTONELLA CACERES",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-08-04",
+      "grossUsd": 3198.9,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-08-04",
+      "grossUsd": 2182.95,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-08-04",
+      "grossUsd": 3138.9,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "ANTONELLA CACERES"
+    },
+    {
+      "fecha": "2026-08-08",
+      "grossUsd": 4180.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "STEFANY MORINIGO"
+    },
+    {
+      "fecha": "2026-08-05",
+      "grossUsd": 3262.71,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Captación",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "SERGIO CANTERO C21 INFINITY"
+    },
+    {
+      "fecha": "2026-08-07",
+      "grossUsd": 1223.25,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Captación",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "VICTOR SEGOVIA C21 LIBERTY"
+    },
+    {
+      "fecha": "2026-08-07",
+      "grossUsd": 2000.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Capta/Coloca",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "ALEXANDRA VILLAMAYOR"
+    },
+    {
+      "fecha": "2026-09-05",
+      "grossUsd": 231.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "MARCELA BARBARY",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-09-04",
+      "grossUsd": 588.0,
+      "tipoInmueble": "Terreno habitacional",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "PEDRO SILVERO FARIAS",
+      "colocadorKey": "MIRTHA GONZALEZ"
+    },
+    {
+      "fecha": "2026-09-04",
+      "grossUsd": 568.7,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "YANINA CANO",
+      "colocadorKey": "ARIEL AYRTON ZENA"
+    },
+    {
+      "fecha": "2026-09-04",
+      "grossUsd": 1542.75,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "ROCIO SARTORIO",
+      "colocadorKey": "CINTHIA FISCHER"
+    },
+    {
+      "fecha": "2026-09-06",
+      "grossUsd": 1422.41,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "FRANCISCO AGUILERA",
+      "colocadorKey": "JOSE MARTINEZ"
+    },
+    {
+      "fecha": "2026-09-06",
+      "grossUsd": 2477.75,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "LISSANDRY MENDEZ",
+      "colocadorKey": "JOSE MARTINEZ"
+    },
+    {
+      "fecha": "2026-09-08",
+      "grossUsd": 833.33,
+      "tipoInmueble": "Terreno habitacional",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "SILVIA FIGUEREDO REMAX GENESIS",
+      "colocadorKey": "JOSE MARTINEZ"
+    },
+    {
+      "fecha": "2026-09-04",
+      "grossUsd": 399.0,
+      "tipoInmueble": "Departamento",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": "ALEXANDRA VILLAMAYOR",
+      "colocadorKey": "MARIAN SOSA"
+    },
+    {
+      "fecha": "2026-09-06",
+      "grossUsd": 1283.33,
+      "tipoInmueble": "Casa",
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": "GUILLERMO SCAPPINI REMAX COSMOPOLITA",
+      "colocadorKey": "CLAUDIA AMARILLA"
+    },
+    {
+      "fecha": "2026-09-29",
+      "grossUsd": 1185.0,
+      "tipoInmueble": "Local / Comercial",
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Captación",
+      "captadorKey": "ESTELA AMARILLA",
+      "colocadorKey": "ANDREA RAMIRES C21 PLATINUM"
+    },
+    {
+      "fecha": "2026-10-07",
+      "grossUsd": 248.7,
+      "tipoInmueble": null,
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Ambas puntas",
+      "captadorKey": null,
+      "colocadorKey": null
+    },
+    {
+      "fecha": "2026-10-07",
+      "grossUsd": 956.52,
+      "tipoInmueble": null,
+      "tipoTransaccion": "VENTA",
+      "ladosTipo": "Colocación",
+      "captadorKey": null,
+      "colocadorKey": null
+    },
+    {
+      "fecha": "2026-10-10",
+      "grossUsd": 1300.0,
+      "tipoInmueble": null,
+      "tipoTransaccion": "ALQUILER",
+      "ladosTipo": "Colocación",
+      "captadorKey": "PABLO MOYA",
+      "colocadorKey": null
+    }
+  ]
+}
