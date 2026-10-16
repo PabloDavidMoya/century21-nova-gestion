@@ -1,0 +1,11 @@
+*.xlsx
+*.xls
+*.csv
+.DS_Store
+Thumbs.db
+node_modules/
+.env
+
+# Datos reales de la oficina (generados por scripts/build_real_data.py desde
+# las planillas de ../reporte-cierres): nunca se suben a GitHub.
+assets/js/real-data.js

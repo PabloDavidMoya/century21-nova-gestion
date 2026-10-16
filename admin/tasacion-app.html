@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C21 NOVA | Sistema Profesional de Tasación & ACM (Paraguay)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            50: '#fcf8ee',
+                            100: '#f7edcc',
+                            200: '#eeda99',
+                            300: '#e3c266',
+                            400: '#d4af37', // Luxury Gold
+                            500: '#c5a059',
+                            600: '#a67c37',
+                            700: '#845f2a',
+                            800: '#6c4e24',
+                            900: '#59401f',
+                        },
+                        novaDark: {
+                            900: '#03100e',
+                            800: '#051C18',
+                            700: '#0B2924',
+                            600: '#133e36'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-cinzel { font-family: 'Cinzel', serif; }
+        .bg-marble-luxury {
+            background-color: #051C18;
+            background-image: radial-gradient(circle at 50% 20%, #0B2924 0%, #03100e 80%);
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #f7edcc 0%, #d4af37 50%, #845f2a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-border {
+            border-image: linear-gradient(to right, #d4af37, #6c4e24) 1;
+        }
+
+        /* ============================================================
+           INFORME IMPRESO / PDF — hoja de estilos dedicada.
+           En pantalla el sistema es de carga de datos (tema oscuro);
+           en impresión se convierte en un informe de tasación formal
+           tipo membrete, en blanco y negro con acentos dorados, sin
+           los controles de edición.
+           ============================================================ */
+        #printHeader { display: none; }
+
+        @media print {
+            @page {
+                size: A4;
+                margin: 16mm 14mm;
+            }
+
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+            body {
+                background: #ffffff !important;
+                color: #1c1c1c !important;
+                font-size: 11pt;
+                line-height: 1.45;
+            }
+
+            /* Todo lo que es UI de trabajo (login, header de navegación,
+               formularios de carga, botones) no debe imprimirse —
+               el membrete #printHeader lo reemplaza. */
+            #loginScreen,
+            header,
+            .no-print,
+            button {
+                display: none !important;
+            }
+
+            /* El membrete sí se muestra, solo en impresión. */
+            #printHeader {
+                display: flex !important;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 2.5pt solid #a67c37;
+                padding-bottom: 10pt;
+                margin-bottom: 16pt;
+            }
+            #printHeader .print-brand {
+                display: flex;
+                align-items: center;
+                gap: 10pt;
+            }
+            #printHeader h1 {
+                font-family: 'Cinzel', serif;
+                font-size: 15pt;
+                font-weight: 700;
+                color: #0B2924;
+                letter-spacing: 0.03em;
+            }
+            #printHeader p {
+                font-size: 8pt;
+                color: #6c4e24;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+            }
+            #printHeader .print-meta {
+                text-align: right;
+                font-size: 8.5pt;
+                color: #444;
+            }
+            #printHeader .print-meta strong { color: #0B2924; }
+
+            #mainApp { display: block !important; background: #fff !important; }
+            main { max-width: 100% !important; padding: 0 !important; }
+
+            /* El panel de resultados pasa de "tarjeta oscura destacada"
+               a sección de informe en blanco, con el dorado reducido a
+               línea y detalle tipográfico. */
+            #resultadosSection {
+                display: block !important;
+                background: #ffffff !important;
+                border: 1pt solid #c9a45c !important;
+                border-radius: 4pt !important;
+                box-shadow: none !important;
+                padding: 14pt !important;
+                page-break-inside: avoid;
+            }
+            #resultadosSection .gold-gradient-text {
+                -webkit-text-fill-color: #8a6a1f !important;
+                color: #8a6a1f !important;
+                background: none !important;
+            }
+            #resultadosSection .text-white,
+            #resultadosSection .text-slate-100,
+            #resultadosSection .text-slate-200,
+            #resultadosSection .text-slate-300 { color: #1c1c1c !important; }
+            #resultadosSection .text-slate-400 { color: #666 !important; }
+            #resultadosSection .text-gold-300 { color: #6c4e24 !important; }
+            #resultadosSection .bg-novaDark-900\/80,
+            #resultadosSection .bg-novaDark-900,
+            #resultadosSection .bg-novaDark-900\/70,
+            #resultadosSection .from-novaDark-800,
+            #resultadosSection .to-novaDark-700 {
+                background: #fbf9f3 !important;
+            }
+            #resultadosSection .border-gold-400,
+            #resultadosSection .border-gold-400\/30,
+            #resultadosSection .border-gold-400\/20 {
+                border-color: #c9a45c !important;
+            }
+
+            /* Testigos: se imprime como tabla de respaldo del informe,
+               con los inputs convertidos a texto plano (sin bordes de
+               formulario — truco estándar para formularios imprimibles). */
+            #testigosReportSection { display: block !important; margin-top: 14pt; page-break-inside: avoid; }
+            #testigosReportSection h3 {
+                font-family: 'Cinzel', serif;
+                font-size: 11pt;
+                color: #0B2924;
+                border-bottom: 1pt solid #c9a45c;
+                padding-bottom: 4pt;
+                margin-bottom: 8pt;
+            }
+            #testigosReportSection table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+            #testigosReportSection th {
+                text-align: left;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                font-size: 7.5pt;
+                color: #6c4e24;
+                border-bottom: 1pt solid #c9a45c;
+                padding: 4pt 6pt;
+            }
+            #testigosReportSection td {
+                padding: 4pt 6pt;
+                border-bottom: 0.5pt solid #e2d9c3;
+                color: #1c1c1c;
+            }
+
+            #printFooter {
+                display: block !important;
+                margin-top: 18pt;
+                padding-top: 8pt;
+                border-top: 0.75pt solid #c9a45c;
+                font-size: 7.5pt;
+                color: #777;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-marble-luxury text-slate-100 min-h-screen flex flex-col justify-between selection:bg-gold-400 selection:text-novaDark-900">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="fixed inset-0 z-50 flex items-center justify-center bg-novaDark-900 bg-opacity-95 backdrop-blur-md p-4">
+        <div class="bg-novaDark-800 border border-gold-400/40 p-8 rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-40 h-40 bg-gold-400/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="text-center mb-6">
+                <!-- Built-in Embedded C21 Nova Logo (SVG) -->
+                <div class="mx-auto w-24 h-24 mb-3 rounded-full border-2 border-gold-400/60 flex items-center justify-center bg-novaDark-900 shadow-xl p-2 relative">
+                    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow">
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="url(#goldGrad)" stroke-width="6"/>
+                        <path d="M 30,50 A 20,20 0 1,1 70,50 C 70,62 50,75 50,75 C 50,75 30,62 30,50 Z" fill="none" stroke="#d4af37" stroke-width="4"/>
+                        <text x="50" y="58" font-family="'Cinzel', serif" font-size="28" font-weight="bold" fill="#d4af37" text-anchor="middle">21</text>
+                        <defs>
+                            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f7edcc"/>
+                                <stop offset="50%" stop-color="#d4af37"/>
+                                <stop offset="100%" stop-color="#845f2a"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold font-cinzel gold-gradient-text tracking-wide">CENTURY 21 NOVA</h1>
+                <p class="text-xs text-gold-200/70 tracking-widest uppercase mt-1">Plataforma Profesional de Tasación & ACM</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gold-300 uppercase mb-1">Asesor Inmobiliario</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gold-400"><i class="fa-solid fa-user-tie"></i></span>
+                        <input type="text" id="loginUser" required value="Lic. Carlos Martínez" class="w-full pl-10 pr-4 py-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-gold-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gold-300 uppercase mb-1">Código de Oficina / Clave</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gold-400"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="loginPass" required value="12345" class="w-full pl-10 pr-4 py-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-gold-400">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-gold-600 via-gold-400 to-gold-300 text-novaDark-900 font-bold rounded-lg shadow-lg hover:from-gold-500 hover:to-gold-200 transition duration-200 uppercase tracking-wider text-sm mt-2">
+                    Iniciar Sesión ACM
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <p class="text-[11px] text-slate-400">Red Inmobiliaria Nº1 en Paraguay &bull; C21 Nova</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="mainApp" class="hidden flex-1 flex flex-col">
+        <!-- HEADER -->
+        <header class="bg-novaDark-800 border-b border-gold-400/30 px-6 py-4 shadow-md sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
+            <div class="max-w-7xl mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <!-- Built-in Header Logo -->
+                    <div class="w-12 h-12 rounded-full border border-gold-400 flex items-center justify-center bg-novaDark-900 shadow">
+                        <svg viewBox="0 0 100 100" class="w-8 h-8">
+                            <circle cx="50" cy="50" r="46" fill="none" stroke="#d4af37" stroke-width="8"/>
+                            <text x="50" y="60" font-family="'Cinzel', serif" font-size="34" font-weight="bold" fill="#d4af37" text-anchor="middle">21</text>
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold font-cinzel gold-gradient-text">CENTURY 21 <span class="text-white font-light text-sm">NOVA</span></h2>
+                        <p class="text-xs text-gold-300/80">Análisis Comparativo de Mercado (Paraguay)</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4 no-print">
+                    <div class="text-right hidden sm:block">
+                        <span id="displayUser" class="text-xs font-semibold text-gold-300 block">Asesor</span>
+                        <span class="text-[10px] text-emerald-400 font-medium"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Sistema En Línea</span>
+                    </div>
+                    <button onclick="logout()" class="text-xs bg-novaDark-700 hover:bg-red-950/40 text-gold-300 hover:text-red-300 border border-gold-400/30 px-3 py-2 rounded-lg transition" title="Cerrar sesión">
+                        <i class="fa-solid fa-power-off mr-1"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTAINER -->
+        <main class="max-w-7xl mx-auto w-full p-4 md:p-6 space-y-6 flex-1">
+
+            <!-- MEMBRETE — solo visible al imprimir -->
+            <div id="printHeader">
+                <div class="print-brand">
+                    <svg viewBox="0 0 100 100" width="40" height="40">
+                        <circle cx="50" cy="50" r="46" fill="none" stroke="#a67c37" stroke-width="8"/>
+                        <text x="50" y="60" font-family="'Cinzel', serif" font-size="34" font-weight="bold" fill="#a67c37" text-anchor="middle">21</text>
+                    </svg>
+                    <div>
+                        <h1>CENTURY 21 NOVA</h1>
+                        <p>Informe de Valuación Inmobiliaria &bull; Paraguay</p>
+                    </div>
+                </div>
+                <div class="print-meta">
+                    <div><strong>Referencia:</strong> <span id="printDireccion">—</span></div>
+                    <div><strong>Asesor:</strong> <span id="printAsesor">—</span></div>
+                    <div><strong>Fecha:</strong> <span id="printFechaMeta">—</span></div>
+                </div>
+            </div>
+
+            <!-- PANEL DE CONTROL / TABS -->
+            <div class="bg-novaDark-800 border border-gold-400/30 rounded-2xl p-6 shadow-xl no-print">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 pb-4 border-b border-gold-400/20 gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold font-cinzel text-gold-300">Generador de Tasación & ACM</h3>
+                        <p class="text-xs text-slate-300">Seleccione la ubicación exacta en Paraguay y configure los parámetros de la propiedad.</p>
+                    </div>
+                    <div class="flex space-x-2 w-full md:w-auto">
+                        <button onclick="resetForm()" class="flex-1 md:flex-none text-xs bg-novaDark-700 text-gold-300 border border-gold-400/30 px-4 py-2 rounded-lg hover:bg-novaDark-600 transition">
+                            <i class="fa-solid fa-rotate-right mr-1"></i> Reiniciar
+                        </button>
+                        <button onclick="descargarInformeHTML()" class="flex-1 md:flex-none text-xs bg-gold-400 text-novaDark-900 font-bold px-4 py-2 rounded-lg hover:bg-gold-300 transition shadow">
+                            <i class="fa-solid fa-file-arrow-down mr-1"></i> Descargar Informe HTML
+                        </button>
+                    </div>
+                </div>
+
+                <!-- FORMULARIO PRINCIPAL EN 3 COLUMNAS -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- COLUMNA 1: UBICACIÓN Y CIUDAD / BARRIO -->
+                    <div class="bg-novaDark-900/70 p-5 rounded-xl border border-gold-400/20 space-y-4">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-gold-400 flex items-center">
+                            <i class="fa-solid fa-map-location-dot mr-2"></i> 1. Ubicación Geográfica
+                        </h4>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Dirección Exacta / Referencia</label>
+                            <input type="text" id="subjDireccion" placeholder="Ej: Esquina Austria y Bélgica" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Ciudad</label>
+                            <select id="selectCiudad" onchange="actualizarBarrios()" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-gold-400">
+                                <option value="Asuncion">Asunción (Capital)</option>
+                                <option value="GranAsuncion">Gran Asunción / Central</option>
+                                <option value="CiudadDelEste">Ciudad del Este (Alto Paraná)</option>
+                                <option value="Encarnacion">Encarnación (Itapúa)</option>
+                                <option value="SanBernardino">San Bernardino (Cordillera)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Barrio / Zona Específica</label>
+                            <select id="selectBarrio" onchange="actualizarPrecioBaseZona()" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-gold-400">
+                                <!-- Dinámico -->
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Valor m² Terreno Base (USD)</label>
+                            <input type="number" id="baseTerrenoM2" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-gold-300 font-bold">
+                            <span class="text-[10px] text-slate-400 mt-0.5 block">Automático según zona inmobiliaria (Paraguay).</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Valor m² Construido Base (USD)</label>
+                            <input type="number" id="baseConstruidoM2" value="900" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-gold-300 font-bold">
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 2: SUPERFICIE Y TIPOLOGÍA -->
+                    <div class="bg-novaDark-900/70 p-5 rounded-xl border border-gold-400/20 space-y-4">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-gold-400 flex items-center">
+                            <i class="fa-solid fa-house-chimney-user mr-2"></i> 2. Características Físicas
+                        </h4>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Sup. Terreno ($m^2$)</label>
+                                <input type="number" id="subjTerreno" value="400" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Sup. Construida ($m^2$)</label>
+                                <input type="number" id="subjConstruido" value="250" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Antigüedad (Años)</label>
+                                <input type="number" id="subjAntiguedad" value="5" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1">Estado Conservación</label>
+                                <select id="subjEstado" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                                    <option value="1.15">A Estrenar / Excelente (15% +)</option>
+                                    <option value="1.0" selected>Muy Bueno / Estándar (100%)</option>
+                                    <option value="0.85">Bueno / Detalles menores (-15%)</option>
+                                    <option value="0.70">A Refaccionar Integral (-30%)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Tipología Inmobiliaria</label>
+                            <select id="subjTipologia" class="w-full p-2.5 bg-novaDark-900 border border-gold-400/30 rounded-lg text-sm text-slate-100">
+                                <option value="Terreno">Terreno Baldío / Lote</option>
+                                <option value="CasaResidencial">Casa Residencial Tradicional</option>
+                                <option value="CasaPremium">Casa en Barrio Cerrado / Exclusiva</option>
+                                <option value="Duplex">Dúplex en Zona Urbana</option>
+                                <option value="Departamento">Departamento Edificio</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA 3: INSTALACIONES Y AMENITIES AVANZADAS -->
+                    <div class="bg-novaDark-900/70 p-5 rounded-xl border border-gold-400/20 space-y-4">
+                        <h4 class="text-sm font-bold uppercase tracking-wider text-gold-400 flex items-center">
+                            <i class="fa-solid fa-list-check mr-2"></i> 3. Instalaciones & Amenities
+                        </h4>
+
+                        <div class="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="14000" class="amenity-chk accent-gold-400 rounded" checked>
+                                <span>Piscina con filtro & solárium (+USD 14.000)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="8000" class="amenity-chk accent-gold-400 rounded" checked>
+                                <span>Quincho / Parrilla equipado (+USD 8.000)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="6000" class="amenity-chk accent-gold-400 rounded" checked>
+                                <span>Cochera techada multivehículo (+USD 6.000)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="5000" class="amenity-chk accent-gold-400 rounded" checked>
+                                <span>Climatización Split Inverter en ambientes (+USD 5.000)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="7000" class="amenity-chk accent-gold-400 rounded">
+                                <span>Generador eléctrico propio (+USD 7.000)</span>
+                            </label>
+                            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" value="4000" class="amenity-chk accent-gold-400 rounded">
+                                <span>Sistema de seguridad / CCTV / Alarma (+USD 4.000)</span>
+                            </label>
+                        </div>
+
+                        <button onclick="calcularACM()" class="w-full py-3 bg-gradient-to-r from-gold-600 via-gold-400 to-gold-300 text-novaDark-900 font-bold rounded-lg shadow-lg hover:from-gold-500 hover:to-gold-200 transition uppercase tracking-wider text-xs">
+                            <i class="fa-solid fa-calculator mr-1"></i> Calcular Tasación & Mercado
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- PROPIEDADES TESTIGOS (MERCADO) -->
+            <div class="bg-novaDark-800 border border-gold-400/30 rounded-2xl p-6 shadow-xl no-print">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold font-cinzel text-gold-300">Propiedades Testigos (Comparables del Mercado)</h3>
+                        <p class="text-xs text-slate-300">Inmuebles de referencia utilizados para la matriz de homogeneización en Paraguay.</p>
+                    </div>
+                    <button onclick="addTestigo()" class="text-xs bg-gold-400/20 text-gold-300 border border-gold-400/40 px-3 py-1.5 rounded-lg hover:bg-gold-400 hover:text-novaDark-900 transition font-semibold">
+                        <i class="fa-solid fa-plus mr-1"></i> Añadir Testigo
+                    </button>
+                </div>
+
+                <div id="testigosContainer" class="space-y-3">
+                    <!-- Fila testigo 1 -->
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 p-3 bg-novaDark-900/80 rounded-xl border border-gold-400/20 items-center testigo-row">
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Precio Oferta (USD)</label>
+                            <input type="number" value="280000" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-precio">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Sup. Terreno ($m^2$)</label>
+                            <input type="number" value="420" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-terreno">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Sup. Const. ($m^2$)</label>
+                            <input type="number" value="260" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-const">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Antigüedad (Años)</label>
+                            <input type="number" value="6" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-ant">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Ponderación Zona</label>
+                            <select class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-estado">
+                                <option value="1.0">Equivalente</option>
+                                <option value="0.92">Superior al Sujeto</option>
+                                <option value="1.08">Inferior al Sujeto</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end justify-end h-full pt-4">
+                            <button onclick="removeRow(this)" class="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <!-- Fila testigo 2 -->
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-3 p-3 bg-novaDark-900/80 rounded-xl border border-gold-400/20 items-center testigo-row">
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Precio Oferta (USD)</label>
+                            <input type="number" value="260000" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-precio">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Sup. Terreno ($m^2$)</label>
+                            <input type="number" value="380" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-terreno">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Sup. Const. ($m^2$)</label>
+                            <input type="number" value="230" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-const">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Antigüedad (Años)</label>
+                            <input type="number" value="4" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-ant">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase text-slate-400">Ponderación Zona</label>
+                            <select class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-estado">
+                                <option value="1.0">Equivalente</option>
+                                <option value="0.92">Superior al Sujeto</option>
+                                <option value="1.08">Inferior al Sujeto</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end justify-end h-full pt-4">
+                            <button onclick="removeRow(this)" class="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-1"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE TESTIGOS PARA EL INFORME — generada por JS, solo visible al imprimir -->
+            <div id="testigosReportSection" style="display:none;">
+                <h3>Propiedades Testigos Utilizadas</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Precio (USD)</th>
+                            <th>Terreno (m²)</th>
+                            <th>Construido (m²)</th>
+                            <th>USD/m²</th>
+                            <th>Antigüedad</th>
+                            <th>Ponderación</th>
+                        </tr>
+                    </thead>
+                    <tbody id="testigosReportBody"></tbody>
+                </table>
+            </div>
+
+            <!-- RESULTADOS DEL ACM -->
+            <section id="resultadosSection" class="hidden bg-gradient-to-br from-novaDark-800 to-novaDark-700 border-2 border-gold-400 rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute right-0 top-0 w-96 h-96 bg-gold-400/5 rounded-full blur-3xl pointer-events-none"></div>
+                
+                <div class="flex flex-col md:flex-row justify-between items-center border-b border-gold-400/30 pb-6 mb-6 gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 rounded-full bg-gold-400/20 border border-gold-400 flex items-center justify-center text-gold-300 text-2xl shadow">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs uppercase tracking-widest text-gold-300 font-semibold">Dictamen Profesional C21 Nova</span>
+                            <h3 class="text-2xl font-bold font-cinzel text-white">Valuación Comercial Estimada</h3>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Fecha de Emisión</span>
+                        <span id="lblFecha" class="text-xs font-semibold text-gold-300"></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-8">
+                    <div class="bg-novaDark-900/80 p-5 rounded-xl border border-gold-400/30 shadow">
+                        <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block mb-1">Valor Mínimo (Rápida Colocación)</span>
+                        <span id="valMin" class="text-2xl font-bold text-slate-200">-</span>
+                    </div>
+                    <div class="bg-novaDark-900 p-6 rounded-xl border-2 border-gold-400 shadow-2xl transform md:scale-105">
+                        <span class="text-xs font-bold text-gold-300 uppercase tracking-wider block mb-1">Valor de Mercado Sugerido</span>
+                        <span id="valSugerido" class="text-3xl md:text-4xl font-extrabold gold-gradient-text">-</span>
+                    </div>
+                    <div class="bg-novaDark-900/80 p-5 rounded-xl border border-gold-400/30 shadow">
+                        <span class="text-xs font-medium text-slate-400 uppercase tracking-wider block mb-1">Valor Máximo (Expectativa Alta)</span>
+                        <span id="valMax" class="text-2xl font-bold text-slate-200">-</span>
+                    </div>
+                </div>
+
+                <!-- DESGLOSE TÉCNICO -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-novaDark-900/70 p-6 rounded-xl border border-gold-400/20 text-xs">
+                    <div>
+                        <h4 class="font-bold text-gold-300 text-sm mb-3 uppercase flex items-center">
+                            <i class="fa-solid fa-chart-pie mr-2"></i> Parámetros Aplicados en Paraguay
+                        </h4>
+                        <ul class="space-y-2 text-slate-300">
+                            <li>• Ubicación: <span id="resZona" class="font-semibold text-gold-300"></span></li>
+                            <li>• Valor Terreno Valuado: <span id="resIncTerreno" class="font-semibold text-gold-300"></span></li>
+                            <li>• Valor Construcción Neto: <span id="resIncConstruido" class="font-semibold text-gold-300"></span></li>
+                            <li>• Adicionales y Amenities: <span id="resAmenities" class="font-semibold text-gold-300"></span></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-gold-300 text-sm mb-3 uppercase flex items-center">
+                            <i class="fa-solid fa-file-signature mr-2"></i> Recomendación Comercial C21 Nova
+                        </h4>
+                        <p class="text-slate-300 leading-relaxed">
+                            Este reporte representa un Análisis Comparativo de Mercado (ACM) basado en la oferta actual y transacciones registradas en el mercado inmobiliario paraguayo. Se recomienda un margen de negociación inicial de hasta 5% para maximizar la efectividad de venta.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="no-print bg-novaDark-800 border-t border-gold-400/20 py-4 text-center text-xs text-slate-400 mt-8">
+            <p>CENTURY 21 NOVA Paraguay — Red Global de Bienes Raíces &bull; Todos los derechos reservados.</p>
+        </footer>
+
+        <!-- Pie de página del informe impreso -->
+        <p id="printFooter" style="display:none;">
+            Este Análisis Comparativo de Mercado (ACM) es una estimación referencial basada en la oferta y transacciones
+            del mercado inmobiliario paraguayo a la fecha de emisión; no constituye una tasación oficial con valor legal.
+            CENTURY 21 NOVA Paraguay — Red Global de Bienes Raíces.
+        </p>
+    </div>
+
+    <script>
+        // Base de datos completa con barrios y valores promedio reales para Paraguay (Asunción, Central, CDE, Encarnación, San Bernardino)
+        const dbZonasParaguay = {
+            "Asuncion": {
+                barrios: {
+                    "Carmelitas / Las Lomas": { terrenoM2: 800, constM2: 1200 },
+                    "Villa Morra": { terrenoM2: 750, constM2: 1100 },
+                    "Ycuá Satí": { terrenoM2: 720, constM2: 1050 },
+                    "Mburucuyá": { terrenoM2: 680, constM2: 1000 },
+                    "San Cristóbal": { terrenoM2: 650, constM2: 980 },
+                    "Herrera": { terrenoM2: 550, constM2: 920 },
+                    "Las Mercedes": { terrenoM2: 520, constM2: 900 },
+                    "Manorá": { terrenoM2: 600, constM2: 950 },
+                    "San Roque / Catedral": { terrenoM2: 450, constM2: 800 },
+                    "San Pablo": { terrenoM2: 300, constM2: 680 },
+                    "Madame Lynch": { terrenoM2: 350, constM2: 720 }
+                }
+            },
+            "GranAsuncion": {
+                barrios: {
+                    "Luque (Centro / Aviadores)": { terrenoM2: 260, constM2: 780 },
+                    "Luque (Barrio Guazu / Ka'aguy Rory)": { terrenoM2: 200, constM2: 720 },
+                    "San Lorenzo (Centro / UNA)": { terrenoM2: 230, constM2: 720 },
+                    "Fernando de la Mora (Zona Norte)": { terrenoM2: 390, constM2: 850 },
+                    "Fernando de la Mora (Zona Sur)": { terrenoM2: 250, constM2: 720 },
+                    "Lambaré (Av. del Yacht)": { terrenoM2: 340, constM2: 880 },
+                    "Lambaré (Centro)": { terrenoM2: 240, constM2: 720 },
+                    "Mariano Roque Alonso (Ruta Transchaco)": { terrenoM2: 220, constM2: 680 },
+                    "Ñemby (Centro / Acceso Sur)": { terrenoM2: 160, constM2: 620 },
+                    "Villa Elisa (Centro)": { terrenoM2: 180, constM2: 650 }
+                }
+            },
+            "CiudadDelEste": {
+                barrios: {
+                    "Área 1": { terrenoM2: 450, constM2: 950 },
+                    "Área 3 / Área 4": { terrenoM2: 380, constM2: 880 },
+                    "Km 8 Monday / Acaray": { terrenoM2: 180, constM2: 650 },
+                    "San José / Microcentro": { terrenoM2: 420, constM2: 900 },
+                    "Boquerón": { terrenoM2: 250, constM2: 720 }
+                }
+            },
+            "Encarnacion": {
+                barrios: {
+                    "Centro / Zona Costanera": { terrenoM2: 500, constM2: 1050 },
+                    "Pacú Cuá": { terrenoM2: 380, constM2: 900 },
+                    "San Blas": { terrenoM2: 220, constM2: 700 },
+                    "San Isidro": { terrenoM2: 160, constM2: 620 }
+                }
+            },
+            "SanBernardino": {
+                barrios: {
+                    "Costa Lago / Centro": { terrenoM2: 400, constM2: 1000 },
+                    "Zona Alta / Vista Hermosa": { terrenoM2: 320, constM2: 920 },
+                    "Sectores Internos / Rutas": { terrenoM2: 240, constM2: 800 }
+                }
+            }
+        };
+
+        // Inicializar barrios al cargar
+        window.addEventListener('DOMContentLoaded', () => {
+            actualizarBarrios();
+        });
+
+        function actualizarBarrios() {
+            const ciudad = document.getElementById('selectCiudad').value;
+            const selectBarrio = document.getElementById('selectBarrio');
+            selectBarrio.innerHTML = '';
+
+            const barrios = dbZonasParaguay[ciudad].barrios;
+            for (let b in barrios) {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                selectBarrio.appendChild(opt);
+            }
+            actualizarPrecioBaseZona();
+        }
+
+        function actualizarPrecioBaseZona() {
+            const ciudad = document.getElementById('selectCiudad').value;
+            const barrio = document.getElementById('selectBarrio').value;
+            if (dbZonasParaguay[ciudad] && dbZonasParaguay[ciudad].barrios[barrio]) {
+                const data = dbZonasParaguay[ciudad].barrios[barrio];
+                document.getElementById('baseTerrenoM2').value = data.terrenoM2;
+                document.getElementById('baseConstruidoM2').value = data.constM2;
+            }
+        }
+
+        // Manejo del Login
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUser').value;
+            document.getElementById('displayUser').textContent = user;
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+        }
+
+        function logout() {
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function resetForm() {
+            document.getElementById('resultadosSection').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Gestión de Testigos
+        function addTestigo() {
+            const container = document.getElementById('testigosContainer');
+            const row = document.createElement('div');
+            row.className = "grid grid-cols-2 md:grid-cols-6 gap-3 p-3 bg-novaDark-900/80 rounded-xl border border-gold-400/20 items-center testigo-row";
+            row.innerHTML = `
+                <div><label class="block text-[10px] uppercase text-slate-400">Precio Oferta (USD)</label><input type="number" value="220000" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-precio"></div>
+                <div><label class="block text-[10px] uppercase text-slate-400">Sup. Terreno (m²)</label><input type="number" value="350" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-terreno"></div>
+                <div><label class="block text-[10px] uppercase text-slate-400">Sup. Const. (m²)</label><input type="number" value="200" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-const"></div>
+                <div><label class="block text-[10px] uppercase text-slate-400">Antigüedad (Años)</label><input type="number" value="5" class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-ant"></div>
+                <div><label class="block text-[10px] uppercase text-slate-400">Ponderación Zona</label><select class="w-full p-2 bg-novaDark-900 border border-gold-400/30 rounded text-xs text-slate-100 t-estado"><option value="1.0">Equivalente</option><option value="0.92">Superior al Sujeto</option><option value="1.08">Inferior al Sujeto</option></select></div>
+                <div class="flex items-end justify-end h-full pt-4"><button onclick="removeRow(this)" class="text-red-400 hover:text-red-300 text-xs font-semibold px-2 py-1"><i class="fa-solid fa-trash"></i></button></div>
+            `;
+            container.appendChild(row);
+        }
+
+        function removeRow(btn) {
+            btn.closest('.testigo-row').remove();
+        }
+
+        // Lógica de Cálculo del ACM
+        function calcularACM() {
+            const terrenoM2 = parseFloat(document.getElementById('subjTerreno').value) || 0;
+            const construidoM2 = parseFloat(document.getElementById('subjConstruido').value) || 0;
+            const antiguedad = parseFloat(document.getElementById('subjAntiguedad').value) || 0;
+            const factorEstado = parseFloat(document.getElementById('subjEstado').value) || 1.0;
+            
+            const baseTerreno = parseFloat(document.getElementById('baseTerrenoM2').value) || 300;
+            const baseConstruido = parseFloat(document.getElementById('baseConstruidoM2').value) || 900;
+
+            // Método Costo Depreciado + Terreno
+            const depreciacion = Math.max(0.45, 1 - (antiguedad * 0.012)); // 1.2% anual con tope de 55% remanente
+            const valorTerrenoSujeto = terrenoM2 * baseTerreno;
+            const valorConstruidoSujeto = construidoM2 * baseConstruido * depreciacion * factorEstado;
+
+            // Sumatoria Amenities
+            let totalAmenities = 0;
+            document.querySelectorAll('.amenity-chk:checked').forEach(chk => {
+                totalAmenities += parseFloat(chk.value) || 0;
+            });
+
+            let valorBaseSujeto = valorTerrenoSujeto + valorConstruidoSujeto + totalAmenities;
+
+            // Homogeneización con testigos
+            const testigoRows = document.querySelectorAll('.testigo-row');
+            let valoresHomogeneizados = [];
+
+            testigoRows.forEach(row => {
+                let pPrecio = parseFloat(row.querySelector('.t-precio').value) || 0;
+                let pTerreno = parseFloat(row.querySelector('.t-terreno').value) || 1;
+                let pConst = parseFloat(row.querySelector('.t-const').value) || 1;
+                let pAnt = parseFloat(row.querySelector('.t-ant').value) || 0;
+                let pEstadoVal = parseFloat(row.querySelector('.t-estado').value) || 1.0;
+
+                let unitarioTestigo = pPrecio / (pTerreno * 0.35 + pConst * 0.65);
+                let ajusteAntiguedad = 1 + ((pAnt - antiguedad) * 0.005);
+                
+                let valorHomogeneizadoTestigo = unitarioTestigo * (terrenoM2 * 0.35 + construidoM2 * 0.65) * ajusteAntiguedad * pEstadoVal;
+                valoresHomogeneizados.push(valorHomogeneizadoTestigo);
+            });
+
+            let valorFinalSugerido = valorBaseSujeto;
+            if (valoresHomogeneizados.length > 0) {
+                const promedioTestigos = valoresHomogeneizados.reduce((a, b) => a + b, 0) / valoresHomogeneizados.length;
+                // Ponderación 60% mercado (testigos) y 40% valor intrínseco por costos
+                valorFinalSugerido = (promedioTestigos * 0.6) + (valorBaseSujeto * 0.4);
+            }
+
+            const valMin = valorFinalSugerido * 0.94;
+            const valMax = valorFinalSugerido * 1.06;
+
+            // Renderizar resultados
+            document.getElementById('valMin').textContent = `USD ${Math.round(valMin).toLocaleString()}`;
+            document.getElementById('valSugerido').textContent = `USD ${Math.round(valorFinalSugerido).toLocaleString()}`;
+            document.getElementById('valMax').textContent = `USD ${Math.round(valMax).toLocaleString()}`;
+
+            const ciudad = document.getElementById('selectCiudad').selectedOptions[0].text;
+            const barrio = document.getElementById('selectBarrio').value;
+            document.getElementById('resZona').textContent = `${barrio}, ${ciudad}`;
+            document.getElementById('resIncTerreno').textContent = `USD ${baseTerreno}/m² (Total: USD ${Math.round(valorTerrenoSujeto).toLocaleString()})`;
+            document.getElementById('resIncConstruido').textContent = `USD ${Math.round(baseConstruido * depreciacion * factorEstado)}/m² neto`;
+            document.getElementById('resAmenities').textContent = `USD ${Math.round(totalAmenities).toLocaleString()}`;
+            
+            const hoy = new Date().toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            document.getElementById('lblFecha').textContent = hoy;
+
+            // Membrete del informe impreso
+            const direccion = document.getElementById('subjDireccion').value.trim();
+            document.getElementById('printDireccion').textContent = direccion || `${barrio}, ${ciudad}`;
+            document.getElementById('printAsesor').textContent = document.getElementById('displayUser').textContent;
+            document.getElementById('printFechaMeta').textContent = hoy;
+
+            // Tabla de testigos del informe impreso (misma data, formato de lectura)
+            const repBody = document.getElementById('testigosReportBody');
+            repBody.innerHTML = '';
+            testigoRows.forEach(row => {
+                const pPrecio = parseFloat(row.querySelector('.t-precio').value) || 0;
+                const pTerreno = parseFloat(row.querySelector('.t-terreno').value) || 0;
+                const pConst = parseFloat(row.querySelector('.t-const').value) || 0;
+                const pAnt = parseFloat(row.querySelector('.t-ant').value) || 0;
+                const pEstadoTxt = row.querySelector('.t-estado').selectedOptions[0].text;
+                // USD/m² real de mercado (no el "unitario" ponderado interno del
+                // algoritmo) — es lo que un lector del informe espera entender.
+                const unitario = pPrecio / ((pTerreno + pConst) || 1);
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>USD ${Math.round(pPrecio).toLocaleString()}</td>
+                    <td>${pTerreno.toLocaleString()}</td>
+                    <td>${pConst.toLocaleString()}</td>
+                    <td>USD ${Math.round(unitario).toLocaleString()}</td>
+                    <td>${pAnt} años</td>
+                    <td>${pEstadoTxt}</td>
+                `;
+                repBody.appendChild(tr);
+            });
+
+            const sec = document.getElementById('resultadosSection');
+            sec.classList.remove('hidden');
+            sec.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Arma y descarga el informe como un .html autocontenido (membrete +
+        // dictamen + testigos), con el mismo CSS que usa la vista de
+        // impresión. Reemplaza a window.print(): así el asesor puede abrir,
+        // mandar por WhatsApp/email o imprimir el archivo desde donde quiera,
+        // sin depender del diálogo de impresión del navegador.
+        function descargarInformeHTML() {
+            const resSec = document.getElementById('resultadosSection');
+            if (resSec.classList.contains('hidden')) {
+                alert('Primero calculá la tasación con el botón "Calcular Tasación & Mercado".');
+                return;
+            }
+
+            // Reutiliza las reglas de @media print tal cual están en el
+            // documento, para que el informe descargado y la vista previa
+            // de impresión nunca se desincronicen.
+            let printCss = '';
+            for (const sheet of document.styleSheets) {
+                let rules;
+                try { rules = sheet.cssRules; } catch (e) { continue; }
+                for (const rule of rules) {
+                    if (rule.media && rule.media.mediaText.includes('print')) {
+                        for (const inner of rule.cssRules) printCss += inner.cssText + '\n';
+                    }
+                }
+            }
+
+            const direccion = document.getElementById('subjDireccion').value.trim() || 'Informe';
+            const fecha = document.getElementById('lblFecha').textContent;
+
+            const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ACM — ${direccion}</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background:#fff; color:#1c1c1c; margin:0; padding:16mm 14mm; }
+    .font-cinzel { font-family: 'Cinzel', serif; }
+    table { width:100%; border-collapse:collapse; }
+    ${printCss}
+    /* En el informe descargado (a diferencia de la vista previa en pantalla)
+       estos bloques deben verse siempre, sin esperar el media query. */
+    #printHeader, #testigosReportSection, #printFooter, #resultadosSection { display: block !important; }
+    #printHeader { display:flex !important; }
+</style>
+</head>
+<body>
+${document.getElementById('printHeader').outerHTML}
+${document.getElementById('testigosReportSection').outerHTML}
+${resSec.outerHTML}
+${document.getElementById('printFooter').outerHTML}
+</body>
+</html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const nombreArchivo = `ACM_${direccion.replace(/[^a-zA-Z0-9]+/g, '_')}_${fecha.replace(/\//g, '-')}.html`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nombreArchivo;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

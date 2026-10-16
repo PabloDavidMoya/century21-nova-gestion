@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi panel · Century 21 Nova</title>
+<script>(function(){try{var t=localStorage.getItem('c21-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  section + section { margin-top: 28px; }
+  .cartera-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+  .cartera-row:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+<div class="sidebar-backdrop"></div>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="mark">C21</div>
+      <div class="name">NOVA<small>Panel de asesor/a</small></div>
+    </div>
+    <nav class="nav-group">
+      <div class="label">Mi panel</div>
+      <a class="nav-link active" href="#resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Resumen</a>
+      <a class="nav-link" href="#desafios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Mis desafíos</a>
+      <a class="nav-link" href="#cartera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Mi cartera</a>
+      <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario del equipo</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user">
+        <div class="av" id="avIni">A</div>
+        <div class="who"><b id="sbNombre">Asesor/a</b><span>Mi cuenta</span></div>
+      </div>
+      <a href="#" class="logout-link" data-logout data-depth="1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Cerrar sesión
+      </a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="row gap-2">
+        <button class="menu-btn" data-menu-toggle aria-label="Abrir menú">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <h1>Hola, <span id="topNombre">—</span></h1>
+      </div>
+      <div class="row gap-2">
+        <select id="switchAsesor" class="field" style="padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:.8rem"></select>
+        <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="resumen">
+        <p class="sub" style="margin-bottom:18px">Tus números del año en curso, tu meta y los desafíos que te propone la oficina.</p>
+
+        <div class="grid grid-4" style="margin-bottom:20px">
+          <div class="card kpi"><div class="label">GCI acumulado</div><div class="value" id="kGci">—</div></div>
+          <div class="card kpi"><div class="label">Cumplimiento vs. meta</div><div class="value" id="kCumpl">—</div><div class="progress" style="margin-top:8px"><span id="kCumplBar" style="width:0%"></span></div></div>
+          <div class="card kpi"><div class="label">Nivel actual</div><div class="value" id="kNivel">—</div><div class="sub" id="kNivelSub"></div></div>
+          <div class="card kpi"><div class="label">Lados cerrados</div><div class="value" id="kLados">—</div></div>
+        </div>
+
+        <div class="card" id="chartMioCard">
+          <div class="card-title" style="margin-bottom:14px">Meta vs. real — mes a mes</div>
+          <svg id="chartMio" class="chart" style="width:100%;height:220px"></svg>
+        </div>
+      </section>
+
+      <section id="desafios">
+        <div class="row between" style="margin-bottom:14px">
+          <div class="card-title" style="font-size:1.05rem">Mis desafíos</div>
+        </div>
+        <div id="desafiosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
+      </section>
+
+      <section id="cartera">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mi cartera y captaciones</div>
+        <div class="card" id="carteraCard"></div>
+      </section>
+
+      <section id="calendario">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Calendario del equipo</div>
+        <div class="card"><div id="eventList"></div></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/mock-data.js"></script>
+<script src="../assets/js/real-data.js"></script>
+<script src="../assets/js/charts.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+  var sel = document.getElementById('switchAsesor');
+  C21.asesores.forEach(function (a) {
+    var o = document.createElement('option'); o.value = a.id; o.textContent = a.nombre; sel.appendChild(o);
+  });
+
+  var storedId;
+  try { storedId = sessionStorage.getItem('c21-asesor'); } catch (e) {}
+  sel.value = storedId && C21.getAsesor(storedId) ? storedId : C21.asesores[0].id;
+
+  function renderAsesor(id) {
+    var a = C21.getAsesor(id);
+    try { sessionStorage.setItem('c21-asesor', id); } catch (e) {}
+
+    document.getElementById('sbNombre').textContent = a.nombre;
+    document.getElementById('avIni').textContent = a.nombre.charAt(0);
+    document.getElementById('topNombre').textContent = a.nombre.split(' ')[0];
+
+    document.getElementById('kGci').textContent = C21.fmtUSD(a.gciAcumulado);
+    document.getElementById('kCumpl').textContent = a.cumplimiento + '%';
+    document.getElementById('kCumplBar').style.width = Math.min(100, a.cumplimiento) + '%';
+    document.getElementById('kNivel').innerHTML = '<span class="badge ' + a.nivel.key + '">' + a.nivel.label + '</span>';
+    document.getElementById('kNivelSub').textContent = a.lados + ' lados acumulados';
+    document.getElementById('kLados').textContent = a.lados;
+
+    var chartCard = document.getElementById('chartMioCard');
+    if (a.mensual) {
+      chartCard.innerHTML = '<div class="card-title" style="margin-bottom:14px">Meta vs. real — mes a mes</div><svg id="chartMio" class="chart" style="width:100%;height:220px"></svg>';
+      C21Charts.metaReal(document.getElementById('chartMio'),
+        C21.MESES,
+        C21.MESES.map(function () { return a.metaAnual / 12; }),
+        a.mensual, C21.MES_ACTUAL_IDX);
+    } else {
+      chartCard.innerHTML = '<div class="card-title" style="margin-bottom:8px">Meta vs. real — mes a mes</div><p class="sub">Todavía no hay desglose mensual por asesor — vas a verlo acá apenas se conecte la base de datos (Fase 2). Por ahora mirá tu acumulado y cumplimiento arriba.</p>';
+    }
+
+    var grid = document.getElementById('desafiosGrid');
+    grid.innerHTML = '';
+    var mios = C21.loadDesafios().filter(function (d) { return d.asignadoA === 'Todos' || d.asignadoA === id; });
+    if (!mios.length) grid.innerHTML = '<p class="sub">No tenés desafíos asignados por ahora.</p>';
+    mios.forEach(function (d) {
+      var pct = Math.min(100, Math.round((d.progreso / d.meta) * 100));
+      var card = document.createElement('div');
+      card.className = 'challenge-card';
+      card.innerHTML =
+        '<div class="top"><div><h3>' + d.titulo + '</h3><span class="sub">' + d.tipo + '</span></div>' +
+        '<span class="badge ' + (d.estado === 'Cumplido' ? 'green' : 'gold-lvl') + '">' + d.estado + '</span></div>' +
+        '<p>' + (d.descripcion || '') + '</p>' +
+        '<div class="progress"><span style="width:' + pct + '%"></span></div>' +
+        '<div class="meta"><span>' + d.progreso + ' / ' + d.meta + ' ' + d.unidad + '</span><span>Vence ' + new Date(d.vence + 'T00:00:00').toLocaleDateString('es-PY') + '</span></div>';
+      grid.appendChild(card);
+    });
+
+    var cc = document.getElementById('carteraCard');
+    cc.innerHTML = '';
+    if (C21.isReal) {
+      cc.innerHTML =
+        '<div class="cartera-row"><div style="font-weight:600;font-size:.88rem">Captaciones + colocaciones (jul–oct)</div><div style="font-size:1.4rem;font-weight:800;color:var(--gold)">' + a.captaciones + '</div></div>' +
+        '<p class="sub">Todavía no tenemos el desglose por tipo de propiedad para cada asesor — se ve en la oficina general, en Dashboard.</p>';
+    } else {
+      C21.captacionesPorProducto.forEach(function (p) {
+        var miCaptadas = Math.max(1, Math.round(p.captadas * (a.captaciones / 120)));
+        var row = document.createElement('div');
+        row.className = 'cartera-row';
+        row.innerHTML =
+          '<div style="width:140px;font-weight:600;font-size:.88rem">' + p.producto + '</div>' +
+          '<div class="progress" style="flex:1"><span style="width:' + Math.min(100, miCaptadas * 10) + '%"></span></div>' +
+          '<div style="width:110px;text-align:right" class="sub">' + miCaptadas + ' captadas</div>';
+        cc.appendChild(row);
+      });
+    }
+  }
+
+  sel.addEventListener('change', function () { renderAsesor(sel.value); });
+  renderAsesor(sel.value);
+
+  var ew = document.getElementById('eventList');
+  C21.loadCalendario().slice().sort(function (a, b) { return a.fecha.localeCompare(b.fecha); }).forEach(function (ev) {
+    var d = new Date(ev.fecha + 'T00:00:00');
+    var row = document.createElement('div');
+    row.className = 'event-row';
+    row.innerHTML =
+      '<div class="event-date"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('es-PY', {month:'short'}) + '</span></div>' +
+      '<div><div style="font-weight:600;font-size:.88rem">' + ev.titulo + '</div><div class="sub">' + (ev.hora || 'Todo el día') + '</div></div>';
+    ew.appendChild(row);
+  });
+</script>
+</body>
+</html>
