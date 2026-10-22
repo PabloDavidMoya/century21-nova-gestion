@@ -65,6 +65,14 @@
         <div class="row gap-2" style="flex-wrap:wrap;align-items:flex-end">
           <div class="field" style="margin:0"><label>Desde</label><input type="date" id="fDesde"></div>
           <div class="field" style="margin:0"><label>Hasta</label><input type="date" id="fHasta"></div>
+          <div class="field" style="margin:0">
+            <label>Tipo</label>
+            <select id="fTipo">
+              <option value="">Todos</option>
+              <option value="VENTA">Venta</option>
+              <option value="ALQUILER">Alquiler</option>
+            </select>
+          </div>
           <button class="btn primary" id="btnGenerar" style="padding:10px 18px">Generar reporte</button>
           <button class="btn ghost" id="btnTodo" style="padding:10px 18px">Año completo</button>
           <button class="btn ghost" id="btnImprimir" style="padding:10px 18px">Imprimir / PDF</button>
@@ -131,13 +139,17 @@
     return true;
   }
 
-  function render(cierres, desde, hasta) {
-    var confirmados = cierres.filter(function (c) { return c.estado === 'Confirmado' && enRango(c.fecha_cobro.slice(0, 10), desde, hasta); });
-    var pendientes = cierres.filter(function (c) { return c.estado === 'Pendiente' && enRango(c.fecha_cobro.slice(0, 10), desde, hasta); });
+  function render(cierres, desde, hasta, tipo) {
+    function pasaFiltro(c) {
+      return enRango(c.fecha_cobro.slice(0, 10), desde, hasta) && (!tipo || c.tipo_transaccion === tipo);
+    }
+    var confirmados = cierres.filter(function (c) { return c.estado === 'Confirmado' && pasaFiltro(c); });
+    var pendientes = cierres.filter(function (c) { return c.estado === 'Pendiente' && pasaFiltro(c); });
 
-    document.getElementById('rangoLabel').textContent = (desde || hasta)
-      ? 'Mostrando del ' + (desde || '…') + ' al ' + (hasta || '…')
-      : 'Mostrando: año completo (todos los cierres confirmados)';
+    var TIPO_LABEL = { VENTA: 'solo ventas', ALQUILER: 'solo alquileres' };
+    document.getElementById('rangoLabel').textContent =
+      ((desde || hasta) ? 'Mostrando del ' + (desde || '…') + ' al ' + (hasta || '…') : 'Mostrando: año completo') +
+      (tipo ? ' — ' + TIPO_LABEL[tipo] : ' (ventas y alquileres)');
 
     var gciTotal = confirmados.reduce(function (s, c) { return s + parseFloat(c.gross_usd); }, 0);
     var ventas = confirmados.filter(function (c) { return c.tipo_transaccion === 'VENTA'; }).length;
@@ -178,12 +190,14 @@
   document.getElementById('btnGenerar').addEventListener('click', function () {
     var desde = document.getElementById('fDesde').value || null;
     var hasta = document.getElementById('fHasta').value || null;
-    render(TODOS_LOS_CIERRES, desde, hasta);
+    var tipo = document.getElementById('fTipo').value || null;
+    render(TODOS_LOS_CIERRES, desde, hasta, tipo);
   });
   document.getElementById('btnTodo').addEventListener('click', function () {
     document.getElementById('fDesde').value = '';
     document.getElementById('fHasta').value = '';
-    render(TODOS_LOS_CIERRES, null, null);
+    document.getElementById('fTipo').value = '';
+    render(TODOS_LOS_CIERRES, null, null, null);
   });
   document.getElementById('btnImprimir').addEventListener('click', function () { window.print(); });
 
