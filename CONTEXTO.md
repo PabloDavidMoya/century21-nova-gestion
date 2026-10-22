@@ -68,6 +68,75 @@ nuevas sin destruir nada, se agregó `backend/migrations/` +
 tabla `schema_migrations`), todo con `CREATE TABLE IF NOT EXISTS`. Usar
 siempre este camino de ahora en más para cambios de esquema contra Render.
 
+### Tercera parte de la sesión 2026-10-21: permisos por rol + cierres enero-junio
+
+**Permisos reales por rol** (Pablo lo pidió explícito: "los asesores no
+deberían ver todo lo privado de Nova" y "Magalí solo contable"):
+- Gerente/Administración quedaron limitados a `finanzas.html` (facturas de
+  proveedores + mensualidades) en página y en API — todo lo demás
+  (`/api/asesores`, `/api/cierres`, `/api/desafios`, `/api/calendario`,
+  `/api/reservas`, `/api/usuarios`) les da 403. Verificado contra Render con
+  la cuenta de Magalí.
+- Un asesor ya no puede ver el listado completo de asesores ni todos los
+  cierres de la oficina — antes el filtro a "lo propio" era solo del
+  frontend, la API de verdad devolvía todo (cualquiera con sesión de asesor
+  podía pedir `/api/asesores` o `/api/cierres` directo y ver el GCI/cierres
+  de todos sus compañeros). Ahora el backend filtra server-side.
+- Nuevo: el asesor puede cargar su propia venta desde su panel
+  ("Cargar mi venta", mismo patrón Gs→USD que `cierres.html`). Entra con
+  `estado='Pendiente'` y **no** suma a GCI/metas hasta que el Broker la
+  aprueba o rechaza (botones nuevos en `admin/cierres.html`). Columna
+  `estado` en `cierres` (migración `004_cierres_estado.sql`, ya aplicada).
+  El agregado de GCI en `asesores.js` solo cuenta `estado='Confirmado'`.
+- Fix de bug: el botón de mostrar/ocultar clave del login se quedaba
+  trabado mostrando la clave para siempre después del primer click.
+
+**Cierres de enero a junio importados** (quedaban solo jul-oct). Fuente:
+hojas mensuales de `RESUMEN SEMANAL 2026.xlsx` (no están en git). Son notas
+semanales a mano, no una planilla prolija — hubo que: detectar que varios
+montos estaban en Gs sin aviso (ej. "MARIAN VENTA CAPIATA" aparecía como
+8.525.000 **USD** cuando eran Gs ≈ 1.483 USD — se corrigió con heurística
+de magnitud: comisión > 50.000 en esas hojas = Gs, se convierte a 5.750
+Gs/USD); fusionar a mano varios pares de filas que eran la **misma**
+operación anotada dos veces (ej. "VENTA ALE Y ESTELA" / "VENTA ESTELA Y ALE
+ALTEA07/01", o los dos lados de "LOS CASTAÑOS ALE y jose" / "...Jose y
+Ale"); y armar un matching de nombre de pila contra `asesores` SIN
+substring genérico (un intento inicial hacía que "ale" matcheara con
+"Gonz**ale**z"/"Mor**ale**s" por error — se sacó, quedó solo match exacto
+de primer nombre + una lista corta de apodos verificados a mano: ale→
+Alexandra Villamayor, anto/antonella→Maria Antonella Caceres, fede→
+Federico Villamayor, ayrton→Ariel Ayrton Zena).
+
+Resultado: **66 cierres nuevos cargados** (enero 8, marzo 3, abril 6, mayo
+15, junio 34 — total ≈ USD 51.460), todos `estado='Confirmado'` con
+`observaciones` marcando que vienen de este import. La tabla `cierres` pasó
+de 47 a 113 filas.
+
+**Quedaron 6 filas SIN cargar, a propósito, por ser demasiado ambiguas para
+adjudicar solas** (plata real, mejor preguntarle a Pablo que inventar):
+- Febrero: una fila mezcla 4 "intenciones" de semanas distintas con una
+  sola comisión de USD 2.200 — no se sabe a cuál de las 4 corresponde.
+- Junio "LOS CASTAÑOS ALE y jose" (USD 1.984,78): hay **4 asesores llamados
+  José** en la base (Franco/Martínez/Medina/Morales) — no se sabe cuál.
+- Junio "ALQUILER STEFANY DEPOSITO" y varias filas con "Stefany/Stefani":
+  hay un duplicado viejo sin resolver, **Stefania Morinigo** vs **Stefani
+  Morinigo** (dos fichas para la misma persona, ya flagueado antes) — hasta
+  que Pablo decida cuál es la correcta, cualquier fila con ese nombre queda
+  afuera.
+- Junio "Venta Edificio Doña Marena Cinthi con prosperty" (USD 4.565,33):
+  hay dos Cinthia en la base (Cardozo/Fischer) y "prosperty" parece ser otra
+  inmobiliaria externa, no un asesor interno.
+- Junio "The Choice Estela Y Maria Paz 310": "Maria Paz Pane" quedó afuera
+  porque el token suelto "maria" es ambiguo (hay 3 asesoras que arrancan con
+  Maria) y no vale la pena un alias para un solo caso.
+- Junio "The Choice Esytela Y Prestigio 203": "Prestigio" es otra
+  inmobiliaria (co-broker externo), no hay asesor interno que cargar ahí
+  (son datos legítimos de comisión compartida con otra oficina, no un
+  error).
+
+Si Pablo quiere esas 6 cargadas, lo más simple es por `cierres.html` a
+mano (son pocas).
+
 ### Segunda parte de la sesión 2026-10-21: datos reales de los Excel + Reservas
 
 Análisis completo de los dos Excel nuevos (`RESUMEN SEMANAL 2026.xlsx` y
