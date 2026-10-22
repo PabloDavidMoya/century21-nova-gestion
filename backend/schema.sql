@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- para gen_random_uuid()
 -- prototipo (datos de prueba, se recargan con "npm run seed"). Antes de que
 -- haya datos reales cargados a mano en el panel, cambiar esto por
 -- migraciones incrementales (ALTER TABLE) que no pierdan información.
-DROP TABLE IF EXISTS facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
+DROP TABLE IF EXISTS reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
 
 CREATE TABLE asesores (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,3 +108,26 @@ CREATE TABLE facturas_proveedores (
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_facturas_fecha ON facturas_proveedores (fecha);
+
+-- Reservas activas (operaciones en curso, antes de convertirse en cierre).
+-- Equivalente a la hoja "RESERVAS" de la planilla semanal.
+CREATE TABLE reservas (
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fecha              DATE NOT NULL,
+  asesor_id          UUID REFERENCES asesores(id),
+  asesor_nombre      TEXT,
+  ciudad             TEXT,
+  tipo_transaccion   TEXT CHECK (tipo_transaccion IN ('Venta', 'Alquiler')),
+  forma_pago         TEXT,
+  oficina_captadora  TEXT,
+  precio_usd         NUMERIC(14,2),
+  moneda_original    TEXT NOT NULL DEFAULT 'USD',
+  precio_original    NUMERIC(14,2),
+  sena_usd           NUMERIC(14,2),
+  comision_usd       NUMERIC(14,2),
+  estado             TEXT NOT NULL DEFAULT 'Activa' CHECK (estado IN ('Activa', 'Cerrada', 'Caida')),
+  observaciones      TEXT,
+  cargado_por        UUID REFERENCES usuarios(id),
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_reservas_fecha ON reservas (fecha);

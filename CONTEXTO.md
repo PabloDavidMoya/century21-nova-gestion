@@ -68,18 +68,86 @@ nuevas sin destruir nada, se agregó `backend/migrations/` +
 tabla `schema_migrations`), todo con `CREATE TABLE IF NOT EXISTS`. Usar
 siempre este camino de ahora en más para cambios de esquema contra Render.
 
+### Segunda parte de la sesión 2026-10-21: datos reales de los Excel + Reservas
+
+Análisis completo de los dos Excel nuevos (`RESUMEN SEMANAL 2026.xlsx` y
+`Rendimiento 2026.xlsx`, en la raíz, no en git). Qué se hizo con cada hoja:
+
+- **`Asignar metas`** (Rendimiento 2026.xlsx): roster actualizado de 41
+  asesores con meta anual. Se comparó 1 a 1 contra la tabla `asesores` real
+  por nombre normalizado y se aplicó el diff directo a Render:
+  - **19 asesores nuevos insertados** (todos `Inactivo`, gente que ya no
+    está pero que figura en la planilla histórica — ej. Gisell Delgado,
+    Oscar Maldonado, Jhonatan Fretes, etc. — algunos con meta histórica
+    distinta de 0).
+  - **1 corrección puntual**: "Pamela Figuredo" ya existía en la base pero
+    con `meta_anual=0` y mal escrito el apellido en el Excel viejo vs el
+    nuevo (Figuredo/Figueredo, mismo nombre de cierres/usuarios — **no se
+    tocó**); se le actualizó la meta a 20000 por ser evidentemente la misma
+    persona.
+  - El resto de los asesores activos ya tenía la meta correcta en la base
+    (coincidía con `scripts/build_real_data.py` de una corrida anterior).
+  - ⚠️ **Detectado, no tocado**: hay DOS filas distintas en `asesores` para
+    la misma persona con nombre mal escrito — "Stefani Morinigo" (con meta
+    correcta, 25000) y "Stefania Morinigo" (duplicado viejo, meta 0). Son
+    el mismo caso que Pamela pero con usuarios/cierres ya pueden estar
+    repartidos entre los dos ids — **no se fusionó para no perder
+    histórico**; si hace falta, decidir con Pablo cuál id es el "bueno" y
+    migrar sus cierres antes de borrar el duplicado.
+- **`MENSUALIDADES`** (Rendimiento 2026.xlsx): solo 3 asesores tenían pagos
+  reales con monto numérico cargados (Mirtha González, Diana González, José
+  Medina — $100 cada uno, enero-marzo). Se importaron a la tabla
+  `mensualidades` como `pagado=true`. El resto de las celdas estaban vacías
+  o decían "exonerado" (María Antonella Cáceres, feb-abr) — eso no se
+  importó porque el esquema actual no tiene un estado "exonerado", solo
+  pagado/pendiente; si hace falta, es un cambio de esquema a futuro.
+- **`FC`** (flujo de caja proyectado): sin montos reales cargados, pero su
+  lista de ~27 categorías de gasto se usó para reemplazar el `<select>`
+  genérico de categoría en el formulario de facturas de `admin/finanzas.html`
+  (Alquiler oficina, Salarios, Honorarios, Regalía por transacciones, etc.)
+- **`TOTAL CIERRES`, `RANKING AGENTES`, `CATEGORIAS`**: **no se importaron,
+  a propósito**. Son rollups/tablas derivadas que ya se calculan al vuelo
+  desde `cierres`+`asesores` (gross, lados, ranking) — importarlas hubiera
+  sido duplicar datos que ya existen y se pueden desincronizar. `CATEGORIAS`
+  además mezcla algo distinto (% de split de comisión tipo "Top
+  Producer/Aguila" por asesor, con una estructura de hoja irregular) — eso
+  sí sería una funcionalidad nueva (tabla de categoría/split por asesor),
+  pero toca compensación real y no se quiso improvisar el modelo de datos
+  de madrugada; queda para una sesión con Pablo revisando los números.
+- **`RESUMEN SEMANAL 2026.xlsx` → hojas mensuales (ENERO..OCT)**: ledger
+  transaccional "pendiente de cobro/cobrado" con columnas que cambian de
+  mes a mes (12 a 33 columnas), montos en Gs y comisiones compartidas —
+  **no se importó**, demasiado inconsistente para mapear automáticamente
+  sin inventar reglas; si Pablo quiere esto en la base, lo mejor es
+  revisar con él hoja por hoja o cargar los cierres ya cerrados a mano
+  desde `cierres.html` (que sí queda bien modelado).
+- **`RESERVAS`** (RESUMEN SEMANAL 2026.xlsx): **sí era una funcionalidad
+  nueva que faltaba** (operaciones en curso, antes de convertirse en
+  cierre). Se creó la tabla `reservas` (migración
+  `backend/migrations/003_reservas.sql`, ya aplicada a Render + agregada a
+  `schema.sql`), rutas `backend/src/routes/reservas.js`, y página nueva
+  `admin/reservas.html` (mismo patrón que `cierres.html`: moneda Gs/USD con
+  conversión, asesor, estado Activa/Cerrada/Caída). Las filas históricas de
+  esa hoja **no se cargaron automáticamente** — tienen nombres de asesor
+  ambiguos (solo primer nombre, a veces dos personas juntas como "claudia y
+  ale") y texto libre en observaciones ("FALTA COMISION 5.000.000",
+  "CAIDO"); cargar eso mal podría mostrarle a alguien una reserva que no es
+  suya. Queda la pantalla lista para que Administración las vaya cargando
+  de nuevo a mano (son pocas, están activas, no es trabajo pesado).
+- **`TAREAS GENERAL`**: es una agenda/checklist gerencial suelta
+  (reclutamiento, KPIs, objetivos), no tareas semanales estructuradas por
+  asesor — no mapea a ninguna tabla razonable, no se tocó.
+
 ### Pendiente de esta sesión (no llegamos)
 
-- Pasar los datos de los dos Excel nuevos a la base real (cierres del año
-  completo desde "TOTAL CIERRES", mensualidades, etc.) — quedó pendiente
-  un análisis detallado de esas planillas que no llegó a terminar a tiempo.
-  Antes de reimportar cierres, chequear que no se dupliquen con los que ya
-  haya cargado Magalí a mano desde `cierres.html`.
-- Push a GitHub: el commit `e7b1919` quedó listo local pero el `git push`
-  lo bloqueó el modo automático de Claude Code (clasificado como
+- Push a GitHub: los commits locales quedaron listos pero el `git push`
+  lo bloquea el modo automático de Claude Code (clasificado como
   "publicación fuera de lugar") — hay que correrlo a mano con `! git push`.
 - Pantalla de cambiar la propia contraseña (seguía pendiente de antes,
   tampoco se hizo esta noche).
+- Decidir con Pablo el duplicado "Stefani"/"Stefania Morinigo" en
+  `asesores` (ver arriba) y si vale la pena modelar el % de split de
+  comisión ("Top Producer/Aguila") de la hoja `CATEGORIAS`.
 
 ## Qué es esto
 
@@ -109,12 +177,12 @@ decisión explícita de Pablo — ver sección "Decisiones de privacidad").
     **14 de noviembre de 2026**! hay que pasarla a plan pago antes de esa
     fecha o se borra todo — ver sección Render).
   - Esquema: `asesores`, `usuarios`, `cierres`, `desafios`,
-    `calendario_eventos`, `mensualidades`, `facturas_proveedores` (nueva,
-    2026-10-21). GCI/lados/captaciones de cada asesor se calculan al vuelo
-    desde `cierres` (no son columnas sueltas).
+    `calendario_eventos`, `mensualidades`, `facturas_proveedores`,
+    `reservas` (nueva, 2026-10-21). GCI/lados/captaciones de cada asesor se
+    calculan al vuelo desde `cierres` (no son columnas sueltas).
   - Rutas: `/api/auth`, `/api/asesores`, `/api/cierres`, `/api/desafios`,
-    `/api/calendario`, `/api/usuarios`, `/api/mensualidades` (nueva),
-    `/api/facturas` (nueva).
+    `/api/calendario`, `/api/usuarios`, `/api/mensualidades`,
+    `/api/facturas`, `/api/reservas` (nueva).
   - Corre local en `http://localhost:3000` (`cd backend && npm run dev`).
 - **Todas las páginas de `admin/*.html` y `asesor/panel.html` hablan
   siempre con la API real** desde el 2026-10-21 — ya no queda modo
@@ -223,15 +291,17 @@ cambios de esquema contra la base real, no `migrate`.
 
 ## Próximos pasos (en orden sugerido)
 
-1. Cargar a la base real los datos de los Excel nuevos ("RESUMEN SEMANAL
-   2026.xlsx", "Rendimiento 2026.xlsx", en la raíz del repo, no en git) —
-   quedó pendiente de la sesión 2026-10-21, ver esa sección arriba.
-2. Pantalla para cambiar la propia contraseña (lo pidió Pablo, todavía no
+1. Pantalla para cambiar la propia contraseña (lo pidió Pablo, todavía no
    se hizo).
-3. Desplegar el backend como Web Service en Render (proyecto `nova`,
+2. Desplegar el backend como Web Service en Render (proyecto `nova`,
    Frankfurt) y apuntar el frontend ahí en vez de `localhost:3000`
    (cambiar `API_BASE` en `assets/js/api.js`).
-4. Subir el frontend a Hostinger.
-5. Antes del 14/11/2026: pasar `nova-db` a plan pago.
-6. Brevo para emails transaccionales (invitación de acceso, recuperar
+3. Subir el frontend a Hostinger.
+4. Antes del 14/11/2026: pasar `nova-db` a plan pago.
+5. Brevo para emails transaccionales (invitación de acceso, recuperar
    contraseña) — todavía no arrancado.
+6. Cargar a mano desde `admin/reservas.html` las reservas activas actuales
+   (la planilla tenía nombres de asesor ambiguos, no se importaron solas —
+   ver sección de la sesión 2026-10-21).
+7. Decidir con Pablo el duplicado Stefani/Stefania Morinigo y si modelar
+   el % de split de comisión por asesor (hoja `CATEGORIAS`).

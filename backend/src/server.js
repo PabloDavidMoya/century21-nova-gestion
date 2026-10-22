@@ -16,6 +16,7 @@ app.use('/api/desafios', require('./routes/desafios'));
 app.use('/api/calendario', require('./routes/calendario'));
 app.use('/api/mensualidades', require('./routes/mensualidades'));
 app.use('/api/facturas', require('./routes/facturas'));
+app.use('/api/reservas', require('./routes/reservas'));
 
 app.use((err, req, res, next) => {
   console.error(err);

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservas · Century 21 Nova</title>
+<script>(function(){try{var t=localStorage.getItem('c21-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  .api-error{color:var(--danger);font-size:.82rem;margin-top:6px;display:none}
+  .api-ok{color:var(--ok);font-size:.82rem;margin-top:6px;display:none}
+</style>
+</head>
+<body>
+<div class="sidebar-backdrop"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="mark">C21</div><div class="name">NOVA<small>Panel administración</small></div></div>
+    <nav class="nav-group">
+      <div class="label">General</div>
+      <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Dashboard</a>
+      <a class="nav-link" href="asesores.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Asesores</a>
+      <a class="nav-link" href="metas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Metas y proyecciones</a>
+      <a class="nav-link" href="desafios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Desafíos</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="label">Operación</div>
+      <a class="nav-link" href="cierres.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>Cargar cierre</a>
+      <a class="nav-link active" href="reservas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 16h5"/></svg>Reservas</a>
+      <a class="nav-link" href="calendario.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
+      <a class="nav-link" href="finanzas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Finanzas</a>
+      <a class="nav-link" href="tasacion.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Tasación ACM</a>
+      <a class="nav-link" href="informes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="13" y="8" width="3" height="10"/></svg>Informes</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="label">Cuenta</div>
+      <a class="nav-link" href="usuarios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Usuarios y accesos</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user"><div class="av">D</div><div class="who"><b>Dueña / Admin</b><span>Acceso completo</span></div></div>
+      <a href="#" class="logout-link" data-logout data-depth="1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Cerrar sesión</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="row gap-2">
+        <button class="menu-btn" data-menu-toggle aria-label="Abrir menú"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <h1>Reservas</h1>
+      </div>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </header>
+
+    <main class="main">
+      <p class="sub" style="margin-bottom:18px">Operaciones en curso (antes de convertirse en cierre): captaciones reservadas, con seña y datos del interesado.</p>
+
+      <div class="grid grid-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">Nueva reserva</div>
+          <form id="reservaForm" style="display:flex;flex-direction:column;gap:14px">
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Fecha</label><input type="date" id="fFecha" required></div>
+              <div class="field"><label>Asesor</label><select id="fAsesor"><option value="">— ninguno de la oficina —</option></select></div>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Ciudad / barrio</label><input type="text" id="fCiudad"></div>
+              <div class="field"><label>Tipo</label>
+                <select id="fTipoTx"><option value="Venta">Venta</option><option value="Alquiler">Alquiler</option></select>
+              </div>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Forma de pago</label>
+                <select id="fFormaPago"><option value="Fondos propios">Fondos propios</option><option value="Vía banco">Vía banco</option><option value="Otro">Otro</option></select>
+              </div>
+              <div class="field"><label>Oficina captadora (opcional)</label><input type="text" id="fOficina" placeholder="ej: Nova / Remax / Prestigio"></div>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Moneda</label>
+                <select id="fMoneda"><option value="USD">USD</option><option value="Gs">Guaraníes</option></select>
+              </div>
+              <div class="field"><label>Precio de cierre (en la moneda elegida)</label><input type="number" id="fPrecio" step="0.01"></div>
+            </div>
+            <div class="field" id="fTcWrap" style="display:none"><label>Tipo de cambio (Gs por USD)</label><input type="number" id="fTc" value="5750"></div>
+            <div class="field"><label>Precio en USD</label><input type="text" id="fPrecioPreview" disabled style="font-weight:700;color:var(--gold)"></div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Seña (USD, opcional)</label><input type="number" id="fSena" step="0.01"></div>
+              <div class="field"><label>Comisión (USD, opcional)</label><input type="number" id="fComision" step="0.01"></div>
+            </div>
+            <div class="field"><label>Observaciones (opcional)</label><textarea id="fObs"></textarea></div>
+            <button type="submit" class="btn primary" style="padding:11px">Guardar reserva</button>
+            <div class="api-error" id="formError"></div>
+            <div class="api-ok" id="formOk">Reserva guardada ✓</div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Reservas activas</div>
+          <div id="listaReservas" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+  var selAsesor = document.getElementById('fAsesor');
+
+  function fmtUSD(n) { return '$ ' + Math.round(n).toLocaleString('es-PY'); }
+
+  async function cargarAsesoresEnSelect() {
+    var asesores = await C21Api.api('/api/asesores');
+    asesores.sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+    asesores.forEach(function (a) {
+      var o = document.createElement('option'); o.value = a.id; o.textContent = a.nombre; selAsesor.appendChild(o);
+    });
+  }
+
+  var estadoBadge = { Activa: 'gold-lvl', Cerrada: 'green', Caida: 'bronze' };
+
+  async function cargarLista() {
+    var reservas = await C21Api.api('/api/reservas');
+    var box = document.getElementById('listaReservas');
+    box.innerHTML = '';
+    if (!reservas.length) { box.innerHTML = '<p class="sub">Todavía no hay reservas cargadas.</p>'; return; }
+    reservas.forEach(function (r) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + (r.asesor_nombre_real || r.asesor_nombre || 'Sin asesor') + '</b>' +
+        '<span class="badge ' + (estadoBadge[r.estado] || 'bronze') + '">' + r.estado + '</span></div>' +
+        '<div class="sub">' + new Date(r.fecha).toLocaleDateString('es-PY') + (r.ciudad ? ' · ' + r.ciudad : '') + (r.tipo_transaccion ? ' · ' + r.tipo_transaccion : '') +
+        (r.precio_usd ? ' · ' + fmtUSD(r.precio_usd) : '') + '</div>' +
+        (r.observaciones ? '<div class="sub" style="font-style:italic">' + r.observaciones + '</div>' : '') +
+        '<div class="row gap-2" style="margin-top:6px">' +
+        (r.estado === 'Activa' ? '<button class="btn ghost sm" data-marcar="' + r.id + '" data-estado="Cerrada">Marcar cerrada</button><button class="btn ghost sm" data-marcar="' + r.id + '" data-estado="Caida">Marcar caída</button>' : '') +
+        '</div>';
+      box.appendChild(row);
+    });
+  }
+
+  document.getElementById('listaReservas').addEventListener('click', async function (e) {
+    var id = e.target.dataset.marcar;
+    if (!id) return;
+    await C21Api.api('/api/reservas/' + id, { method: 'PATCH', body: JSON.stringify({ estado: e.target.dataset.estado }) });
+    cargarLista();
+  });
+
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) {
+    cargarAsesoresEnSelect();
+    cargarLista();
+  }
+
+  document.getElementById('fMoneda').addEventListener('change', function () {
+    document.getElementById('fTcWrap').style.display = this.value === 'Gs' ? '' : 'none';
+    actualizarPreview();
+  });
+  document.getElementById('fPrecio').addEventListener('input', actualizarPreview);
+  document.getElementById('fTc').addEventListener('input', actualizarPreview);
+  function actualizarPreview() {
+    var monto = parseFloat(document.getElementById('fPrecio').value) || 0;
+    var esGs = document.getElementById('fMoneda').value === 'Gs';
+    var tc = parseFloat(document.getElementById('fTc').value) || 5750;
+    var usd = esGs ? monto / tc : monto;
+    document.getElementById('fPrecioPreview').value = fmtUSD(usd);
+  }
+
+  document.getElementById('reservaForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('formError'), okBox = document.getElementById('formOk');
+    errBox.style.display = 'none'; okBox.style.display = 'none';
+
+    var monto = parseFloat(document.getElementById('fPrecio').value) || 0;
+    var esGs = document.getElementById('fMoneda').value === 'Gs';
+    var tc = parseFloat(document.getElementById('fTc').value) || 5750;
+    var precioUsd = monto ? Math.round((esGs ? monto / tc : monto) * 100) / 100 : null;
+
+    try {
+      await C21Api.api('/api/reservas', {
+        method: 'POST',
+        body: JSON.stringify({
+          fecha: document.getElementById('fFecha').value,
+          asesorId: selAsesor.value || null,
+          ciudad: document.getElementById('fCiudad').value || null,
+          tipoTransaccion: document.getElementById('fTipoTx').value,
+          formaPago: document.getElementById('fFormaPago').value,
+          oficinaCaptadora: document.getElementById('fOficina').value || null,
+          precioUsd: precioUsd,
+          monedaOriginal: document.getElementById('fMoneda').value,
+          precioOriginal: monto || null,
+          senaUsd: parseFloat(document.getElementById('fSena').value) || null,
+          comisionUsd: parseFloat(document.getElementById('fComision').value) || null,
+          observaciones: document.getElementById('fObs').value || null,
+        }),
+      });
+      okBox.style.display = '';
+      e.target.reset();
+      document.getElementById('fPrecioPreview').value = '';
+      document.getElementById('fTcWrap').style.display = 'none';
+      cargarLista();
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+</script>
+</body>
+</html>
