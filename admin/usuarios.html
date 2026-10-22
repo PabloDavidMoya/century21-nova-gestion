@@ -179,7 +179,7 @@
     await cargarUsuarios();
   }
 
-  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  var USUARIO = C21Guard.requireRole(['broker'], 1);
   if (USUARIO) { iniciar(USUARIO); }
 
   document.getElementById('btnNuevo').addEventListener('click', function () {

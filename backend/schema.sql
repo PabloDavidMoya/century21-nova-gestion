@@ -50,6 +50,7 @@ CREATE TABLE cierres (
   colocador_id      UUID REFERENCES asesores(id),
   direccion         TEXT,
   observaciones     TEXT,
+  estado            TEXT NOT NULL DEFAULT 'Confirmado' CHECK (estado IN ('Pendiente', 'Confirmado', 'Rechazado')),
   created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_cierres_fecha ON cierres (fecha_cobro);

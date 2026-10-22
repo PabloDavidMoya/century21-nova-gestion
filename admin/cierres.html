@@ -135,17 +135,36 @@
     var box = document.getElementById('listaCierres');
     box.innerHTML = '';
     if (!cierres.length) { box.innerHTML = '<p class="sub">Todavía no hay cierres cargados.</p>'; return; }
+    var badgeByEstado = { Pendiente: 'gold-lvl', Confirmado: 'green', Rechazado: 'red' };
     cierres.slice(0, 15).forEach(function (c) {
       var row = document.createElement('div');
       row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
       row.innerHTML =
         '<div class="row between"><b style="font-size:.88rem">' + (c.captador_nombre || c.colocador_nombre || 'Sin asesor') + '</b><span style="font-weight:700;color:var(--gold)">' + fmtUSD(c.gross_usd) + '</span></div>' +
-        '<div class="sub">' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + ' · ' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + ' · ' + c.lados_tipo + '</div>';
+        '<div class="sub">' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + ' · ' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + ' · ' + c.lados_tipo + '</div>' +
+        '<div class="row between" style="margin-top:6px">' +
+          '<span class="badge ' + (badgeByEstado[c.estado] || 'green') + '">' + c.estado + '</span>' +
+          (c.estado === 'Pendiente'
+            ? '<span class="row gap-1"><button class="btn ghost sm" data-aprobar="' + c.id + '">Aprobar</button><button class="btn ghost sm" data-rechazar="' + c.id + '">Rechazar</button></span>'
+            : '') +
+        '</div>';
       box.appendChild(row);
+    });
+    box.querySelectorAll('[data-aprobar]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await C21Api.api('/api/cierres/' + btn.dataset.aprobar, { method: 'PATCH', body: JSON.stringify({ estado: 'Confirmado' }) });
+        cargarLista();
+      });
+    });
+    box.querySelectorAll('[data-rechazar]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await C21Api.api('/api/cierres/' + btn.dataset.rechazar, { method: 'PATCH', body: JSON.stringify({ estado: 'Rechazado' }) });
+        cargarLista();
+      });
     });
   }
 
-  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  var USUARIO = C21Guard.requireRole(['broker'], 1);
   if (USUARIO) {
     cargarAsesoresEnSelects();
     cargarLista();

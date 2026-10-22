@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireBroker } = require('../middleware/auth');
 
-router.get('/', requireAuth, requireAdmin, async (req, res) => {
+router.get('/', requireAuth, requireBroker, async (req, res) => {
   const { estado } = req.query;
   const cond = [];
   const vals = [];
@@ -18,7 +18,7 @@ router.get('/', requireAuth, requireAdmin, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, requireAdmin, async (req, res) => {
+router.post('/', requireAuth, requireBroker, async (req, res) => {
   const {
     fecha, asesorId, asesorNombre, ciudad, tipoTransaccion, formaPago, oficinaCaptadora,
     precioUsd, monedaOriginal, precioOriginal, senaUsd, comisionUsd, estado, observaciones,
@@ -41,7 +41,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
+router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
   const { estado, comisionUsd, observaciones } = req.body;
   const { rows } = await pool.query(
     `UPDATE reservas SET
@@ -55,7 +55,7 @@ router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
   await pool.query('DELETE FROM reservas WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

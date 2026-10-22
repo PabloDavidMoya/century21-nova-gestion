@@ -28,6 +28,7 @@
       <a class="nav-link active" href="#resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Resumen</a>
       <a class="nav-link" href="#desafios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Mis desafíos</a>
       <a class="nav-link" href="#cartera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Mi cartera</a>
+      <a class="nav-link" href="#misventas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>Cargar mi venta</a>
       <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario del equipo</a>
     </nav>
     <div class="sidebar-foot">
@@ -85,6 +86,47 @@
       <section id="cartera">
         <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mi cartera y captaciones</div>
         <div class="card" id="carteraCard"></div>
+      </section>
+
+      <section id="misventas">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Cargar mi venta</div>
+        <p class="sub" style="margin-bottom:14px">Quedan como <b>Pendiente</b> hasta que el Broker las valide — recién ahí suman a tu GCI y tus metas.</p>
+        <div class="grid grid-2" style="gap:20px;align-items:start">
+          <div class="card">
+            <form id="miVentaForm" style="display:flex;flex-direction:column;gap:14px">
+              <div class="grid grid-2" style="gap:14px">
+                <div class="field"><label>Fecha de cobro</label><input type="date" id="mvFecha" required></div>
+                <div class="field"><label>Tipo</label>
+                  <select id="mvTipoTx"><option value="ALQUILER">Alquiler</option><option value="VENTA">Venta</option></select>
+                </div>
+              </div>
+              <div class="field"><label>Tipo de inmueble</label>
+                <select id="mvTipoInmueble">
+                  <option value="">—</option>
+                  <option>Casa</option><option>Departamento</option><option>Duplex</option>
+                  <option>Terreno habitacional</option><option>Quinta</option><option>Local / Comercial</option>
+                  <option>Casa en condominio</option>
+                </select>
+              </div>
+              <div class="grid grid-2" style="gap:14px">
+                <div class="field"><label>Moneda</label>
+                  <select id="mvMoneda"><option value="USD">USD</option><option value="Gs">Guaraníes</option></select>
+                </div>
+                <div class="field"><label>Comisión (en la moneda elegida)</label><input type="number" id="mvMonto" step="0.01" required></div>
+              </div>
+              <div class="field" id="mvTcWrap" style="display:none"><label>Tipo de cambio (Gs por USD)</label><input type="number" id="mvTc" value="5750"></div>
+              <div class="field"><label>Comisión en USD (gross)</label><input type="text" id="mvGrossPreview" disabled style="font-weight:700;color:var(--gold)"></div>
+              <div class="field"><label>Dirección (opcional)</label><input type="text" id="mvDireccion"></div>
+              <div class="field"><label>Observaciones (opcional)</label><textarea id="mvObs"></textarea></div>
+              <button type="submit" class="btn primary" style="padding:11px">Enviar a validar</button>
+              <div class="api-error" id="mvError"></div>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Mis ventas cargadas</div>
+            <div id="misVentasLista" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
       </section>
 
       <section id="calendario">
@@ -159,9 +201,9 @@
     });
 
     var cierres = await C21Api.api('/api/cierres');
-    var mios = cierres.filter(function (c) { return c.captador_id === usuario.asesorId || c.colocador_id === usuario.asesorId; });
+    var mios = cierres; // ya viene filtrado a los propios desde el backend
     var porTipo = {};
-    mios.forEach(function (c) {
+    mios.filter(function (c) { return c.estado === 'Confirmado'; }).forEach(function (c) {
       var t = c.tipo_inmueble || 'Sin especificar';
       porTipo[t] = porTipo[t] || { captadas: 0, colocadas: 0 };
       if (c.captador_id === usuario.asesorId) porTipo[t].captadas++;
@@ -181,6 +223,20 @@
     });
     if (!tipos.length) cc.innerHTML += '<p class="sub">Todavía no tenés cierres cargados.</p>';
 
+    var listaVentas = document.getElementById('misVentasLista');
+    listaVentas.innerHTML = '';
+    if (!mios.length) { listaVentas.innerHTML = '<p class="sub">Todavía no cargaste ninguna venta.</p>'; }
+    var badgeByEstado = { Pendiente: 'gold-lvl', Confirmado: 'green', Rechazado: 'red' };
+    mios.slice(0, 20).forEach(function (c) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + '</b><span style="font-weight:700;color:var(--gold)">' + fmtUSD(c.gross_usd) + '</span></div>' +
+        '<div class="sub">' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</div>' +
+        '<span class="badge ' + (badgeByEstado[c.estado] || 'gold-lvl') + '">' + c.estado + '</span>';
+      listaVentas.appendChild(row);
+    });
+
     var eventos = await C21Api.api('/api/calendario');
     var ew = document.getElementById('eventList');
     ew.innerHTML = '';
@@ -194,6 +250,49 @@
       ew.appendChild(row);
     });
   }
+
+  document.getElementById('mvMoneda').addEventListener('change', function () {
+    document.getElementById('mvTcWrap').style.display = this.value === 'Gs' ? '' : 'none';
+    actualizarPreviewMiVenta();
+  });
+  document.getElementById('mvMonto').addEventListener('input', actualizarPreviewMiVenta);
+  document.getElementById('mvTc').addEventListener('input', actualizarPreviewMiVenta);
+  function actualizarPreviewMiVenta() {
+    var monto = parseFloat(document.getElementById('mvMonto').value) || 0;
+    var esGs = document.getElementById('mvMoneda').value === 'Gs';
+    var tc = parseFloat(document.getElementById('mvTc').value) || 5750;
+    document.getElementById('mvGrossPreview').value = fmtUSD(esGs ? monto / tc : monto);
+  }
+
+  document.getElementById('miVentaForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('mvError');
+    errBox.style.display = 'none';
+    var monto = parseFloat(document.getElementById('mvMonto').value) || 0;
+    var esGs = document.getElementById('mvMoneda').value === 'Gs';
+    var tc = parseFloat(document.getElementById('mvTc').value) || 5750;
+    var grossUsd = Math.round((esGs ? monto / tc : monto) * 100) / 100;
+    try {
+      await C21Api.api('/api/cierres', {
+        method: 'POST',
+        body: JSON.stringify({
+          fechaCobro: document.getElementById('mvFecha').value,
+          tipoTransaccion: document.getElementById('mvTipoTx').value,
+          tipoInmueble: document.getElementById('mvTipoInmueble').value || null,
+          grossUsd: grossUsd,
+          direccion: document.getElementById('mvDireccion').value || null,
+          observaciones: document.getElementById('mvObs').value || null,
+        }),
+      });
+      e.target.reset();
+      document.getElementById('mvGrossPreview').value = '';
+      document.getElementById('mvTcWrap').style.display = 'none';
+      iniciar(USUARIO);
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
 
   var USUARIO = C21Guard.requireRole(['asesor'], 1);
   if (USUARIO) { iniciar(USUARIO); }

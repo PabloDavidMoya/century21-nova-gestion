@@ -79,10 +79,16 @@
 <script src="assets/js/api.js"></script>
 <script>
   // Si ya había sesión real de una visita anterior, entra directo a su panel.
+  function destinoPorRol(rol) {
+    if (rol === 'asesor') return 'asesor/panel.html';
+    if (rol === 'gerente' || rol === 'administracion') return 'admin/finanzas.html';
+    return 'admin/dashboard.html';
+  }
+
   (function () {
     var u = C21Api.getUsuario();
     if (C21Api.getToken() && u) {
-      window.location.href = u.rol === 'asesor' ? 'asesor/panel.html' : 'admin/dashboard.html';
+      window.location.href = destinoPorRol(u.rol);
     }
   })();
 
@@ -91,8 +97,8 @@
     var mostrar = pass.type === 'password';
     pass.type = mostrar ? 'text' : 'password';
     this.classList.toggle('showing', mostrar);
-    this.querySelector('.icon-eye').style.display = mostrar ? 'none' : '';
-    this.querySelector('.icon-eye-off').style.display = mostrar ? '' : 'none';
+    this.querySelector('.icon-eye').style.display = mostrar ? 'none' : 'inline-flex';
+    this.querySelector('.icon-eye-off').style.display = mostrar ? 'inline-flex' : 'none';
     this.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
   });
 
@@ -102,7 +108,7 @@
     err.style.display = 'none';
     try {
       var usuario = await C21Api.login(document.getElementById('user').value, document.getElementById('pass').value);
-      window.location.href = usuario.rol === 'asesor' ? 'asesor/panel.html' : 'admin/dashboard.html';
+      window.location.href = destinoPorRol(usuario.rol);
     } catch (ex) {
       err.textContent = ex.message;
       err.style.display = '';

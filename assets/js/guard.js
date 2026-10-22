@@ -20,8 +20,14 @@
       if (b) b.textContent = usuario.nombre || usuario.email;
       if (span) span.textContent = ROL_LABELS[usuario.rol] || usuario.rol;
     }
-    // Solo el Broker administra logins de Broker/Gerente/Administración.
-    if (usuario.rol !== 'broker') {
+    // Gerente/Administración: su alcance es Finanzas (facturas, mensualidades)
+    // nomás — se les oculta todo lo demás de la barra lateral.
+    if (usuario.rol === 'gerente' || usuario.rol === 'administracion') {
+      document.querySelectorAll('.sidebar a.nav-link').forEach(function (a) {
+        if (a.getAttribute('href') !== 'finanzas.html') a.style.display = 'none';
+      });
+    } else if (usuario.rol !== 'broker') {
+      // Solo el Broker administra logins de Broker/Gerente/Administración.
       document.querySelectorAll('a.nav-link[href="usuarios.html"]').forEach(function (a) {
         var group = a.closest('.nav-group');
         if (group) group.style.display = 'none';
