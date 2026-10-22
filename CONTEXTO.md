@@ -1,7 +1,43 @@
 # Contexto del proyecto — Century 21 Nova · Plataforma de gestión
 
-Última actualización: 2026-10-21 (sesión nocturna con Pablo — login real,
-roles y facturas de proveedores).
+Última actualización: 2026-10-22 (Informes con datos reales en vivo +
+filtro de fecha/tipo en el generador de reportes).
+
+## Sesión 2026-10-22: Informes conectado a la base real
+
+Pablo seguía sin ver los meses de enero-junio en "Informes" aunque ya
+estaban cargados en la base (ver import de la sesión anterior). Causa
+real: `admin/informes.html` **no hablaba con la API** — era un
+`<iframe>` estático apuntando a un reporte viejo publicado aparte en
+GitHub Pages (`https://pablodavidmoya.github.io/nova/`), congelado en
+datos de jul-oct. Ningún dato que se cargara a la base iba a cambiar lo
+que mostraba esa página.
+
+Se reconstruyó `admin/informes.html` para que calcule todo en vivo desde
+`/api/cierres`: KPIs (GCI confirmado, cierres confirmados, ventas/
+alquileres, pendientes de aprobar), gráfico de barras "GCI por mes" y
+"Por tipo de inmueble", y un generador de reporte con filtro de rango de
+fechas (Desde/Hasta) + botón "Año completo" + "Imprimir/PDF". El reporte
+viejo del iframe quedó como link de referencia al pie, ya no es la fuente
+principal.
+
+Pablo pidió después sumarle un filtro de tipo de operación ("que se
+pueda filtrar entre venta y alquiler") — se agregó un `<select>` Todos/
+Venta/Alquiler que se combina con el rango de fechas (ambos filtros
+aplican juntos sobre el mismo array ya traído de la API, sin pedirla de
+nuevo).
+
+De paso se encontró y corrigió un bug chico: `GET /api/cierres` tenía
+`LIMIT 100` fijo — con 113 filas ya cargadas se estaba truncando
+silenciosamente lo que necesitaba el reporte anual. Subido a `LIMIT
+2000`.
+
+Verificado en vivo contra Render (no se tocaron contraseñas de nadie: se
+generó un JWT temporal de prueba con el mismo `JWT_SECRET` del backend
+para loguear como broker en el navegador, solo para este chequeo):
+año completo = $104.488 GCI / 113 cierres / 29 ventas / 84 alquileres;
+filtro "Venta" solo = $71.051 / 29 cierres / 29 ventas / 0 alquileres;
+marzo 2026 + "Alquiler" = $1.000 / 1 cierre — todo consistente.
 
 ## Sesión 2026-10-21
 
