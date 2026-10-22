@@ -59,10 +59,22 @@
     </header>
 
     <main class="main">
-      <p class="sub" style="margin-bottom:18px">Datos reales en vivo desde la base — todos los cierres confirmados del año, mes a mes.</p>
+      <p class="sub" style="margin-bottom:14px">Datos reales en vivo desde la base — elegí un rango de fechas y generá el reporte.</p>
+
+      <div class="card" style="margin-bottom:18px">
+        <div class="row gap-2" style="flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="margin:0"><label>Desde</label><input type="date" id="fDesde"></div>
+          <div class="field" style="margin:0"><label>Hasta</label><input type="date" id="fHasta"></div>
+          <button class="btn primary" id="btnGenerar" style="padding:10px 18px">Generar reporte</button>
+          <button class="btn ghost" id="btnTodo" style="padding:10px 18px">Año completo</button>
+          <button class="btn ghost" id="btnImprimir" style="padding:10px 18px">Imprimir / PDF</button>
+        </div>
+      </div>
+
+      <p class="sub" style="margin-bottom:10px" id="rangoLabel"></p>
 
       <div class="grid grid-4" style="margin-bottom:22px">
-        <div class="card kpi"><div class="label">GCI confirmado (año)</div><div class="value" id="kGci">—</div></div>
+        <div class="card kpi"><div class="label">GCI confirmado</div><div class="value" id="kGci">—</div></div>
         <div class="card kpi"><div class="label">Cierres confirmados</div><div class="value" id="kCant">—</div></div>
         <div class="card kpi"><div class="label">Ventas / Alquileres</div><div class="value" id="kTipos">—</div></div>
         <div class="card kpi"><div class="label">Pendientes de aprobar</div><div class="value" id="kPend">—</div></div>
@@ -111,10 +123,21 @@
     });
   }
 
-  async function iniciar() {
-    var cierres = await C21Api.api('/api/cierres');
-    var confirmados = cierres.filter(function (c) { return c.estado === 'Confirmado'; });
-    var pendientes = cierres.filter(function (c) { return c.estado === 'Pendiente'; });
+  var TODOS_LOS_CIERRES = null;
+
+  function enRango(fechaIso, desde, hasta) {
+    if (desde && fechaIso < desde) return false;
+    if (hasta && fechaIso > hasta) return false;
+    return true;
+  }
+
+  function render(cierres, desde, hasta) {
+    var confirmados = cierres.filter(function (c) { return c.estado === 'Confirmado' && enRango(c.fecha_cobro.slice(0, 10), desde, hasta); });
+    var pendientes = cierres.filter(function (c) { return c.estado === 'Pendiente' && enRango(c.fecha_cobro.slice(0, 10), desde, hasta); });
+
+    document.getElementById('rangoLabel').textContent = (desde || hasta)
+      ? 'Mostrando del ' + (desde || '…') + ' al ' + (hasta || '…')
+      : 'Mostrando: año completo (todos los cierres confirmados)';
 
     var gciTotal = confirmados.reduce(function (s, c) { return s + parseFloat(c.gross_usd); }, 0);
     var ventas = confirmados.filter(function (c) { return c.tipo_transaccion === 'VENTA'; }).length;
@@ -146,6 +169,23 @@
     var maxTipo = Math.max.apply(null, paresTipo.map(function (p) { return p.valor; }).concat([1]));
     barras(document.getElementById('tipoInmuebleBox'), paresTipo, maxTipo);
   }
+
+  async function iniciar() {
+    TODOS_LOS_CIERRES = await C21Api.api('/api/cierres');
+    render(TODOS_LOS_CIERRES, null, null);
+  }
+
+  document.getElementById('btnGenerar').addEventListener('click', function () {
+    var desde = document.getElementById('fDesde').value || null;
+    var hasta = document.getElementById('fHasta').value || null;
+    render(TODOS_LOS_CIERRES, desde, hasta);
+  });
+  document.getElementById('btnTodo').addEventListener('click', function () {
+    document.getElementById('fDesde').value = '';
+    document.getElementById('fHasta').value = '';
+    render(TODOS_LOS_CIERRES, null, null);
+  });
+  document.getElementById('btnImprimir').addEventListener('click', function () { window.print(); });
 
   var USUARIO = C21Guard.requireRole(['broker'], 1);
   if (USUARIO) { iniciar(); }
