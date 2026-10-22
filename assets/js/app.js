@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
     b.addEventListener('click', function (e) {
       e.preventDefault();
       try { sessionStorage.removeItem('c21-rol'); sessionStorage.removeItem('c21-asesor'); } catch (err) {}
+      if (window.C21Api) window.C21Api.clearSession();
       var depth = b.getAttribute('data-depth') || '0';
       window.location.href = (depth === '1' ? '../' : './') + 'index.html';
     });

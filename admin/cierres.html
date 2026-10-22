@@ -58,22 +58,7 @@
     </header>
 
     <main class="main">
-      <!-- Portón de login real contra la API (distinto del login de demo de index.html) -->
-      <div id="loginGate" class="login-gate">
-        <div class="card">
-          <div class="card-title" style="margin-bottom:4px">Conectar con la base real</div>
-          <p class="sub" style="margin-bottom:16px">Esta pantalla sí habla con la API real (backend/). Iniciá sesión con el usuario admin.</p>
-          <form id="loginForm" style="display:flex;flex-direction:column;gap:12px">
-            <div class="field"><label>Email</label><input type="email" id="lgEmail" value="admin@century21nova.com" required></div>
-            <div class="field"><label>Contraseña</label><input type="password" id="lgPass" required></div>
-            <button type="submit" class="btn primary" style="padding:10px">Ingresar</button>
-            <div class="api-error" id="loginError"></div>
-          </form>
-        </div>
-      </div>
-
-      <!-- Contenido real, oculto hasta loguearse -->
-      <div id="appContent" style="display:none">
+      <div id="appContent">
         <p class="sub" style="margin-bottom:18px">Cargá un cierre apenas te llegue por WhatsApp — reemplaza anotarlo en la planilla. Queda guardado en la base real al toque.</p>
 
         <div class="grid grid-2" style="gap:20px;align-items:start">
@@ -126,10 +111,9 @@
 
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  var gate = document.getElementById('loginGate');
-  var content = document.getElementById('appContent');
   var selCaptador = document.getElementById('fCaptador');
   var selColocador = document.getElementById('fColocador');
 
@@ -160,28 +144,11 @@
     });
   }
 
-  async function iniciar() {
-    gate.style.display = 'none';
-    content.style.display = '';
-    await cargarAsesoresEnSelects();
-    await cargarLista();
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) {
+    cargarAsesoresEnSelects();
+    cargarLista();
   }
-
-  // Si ya había sesión de una visita anterior, entra directo.
-  if (C21Api.getToken()) { iniciar().catch(function () { C21Api.clearSession(); }); }
-
-  document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var err = document.getElementById('loginError');
-    err.style.display = 'none';
-    try {
-      await C21Api.login(document.getElementById('lgEmail').value, document.getElementById('lgPass').value);
-      await iniciar();
-    } catch (ex) {
-      err.textContent = ex.message + ' — ¿está corriendo el backend (npm run dev) en localhost:3000?';
-      err.style.display = '';
-    }
-  });
 
   document.getElementById('fMoneda').addEventListener('change', function () {
     document.getElementById('fTcWrap').style.display = this.value === 'Gs' ? '' : 'none';

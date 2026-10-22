@@ -81,8 +81,8 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
-<script src="../assets/js/mock-data.js"></script>
-<script src="../assets/js/real-data.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
   var tipoMeta = {
@@ -91,13 +91,18 @@
     capacitacion: { label: 'Capacitación', color: 'bronze' },
     evento: { label: 'Evento', color: 'silver' }
   };
+  var eventosActuales = [];
+
+  async function cargarEventos() {
+    eventosActuales = await C21Api.api('/api/calendario');
+    render();
+  }
 
   function render() {
-    var list = C21.loadCalendario().slice().sort(function (a, b) { return a.fecha.localeCompare(b.fecha); });
     var box = document.getElementById('eventList');
     box.innerHTML = '';
-    if (!list.length) { box.innerHTML = '<p class="sub">Todavía no hay eventos cargados.</p>'; return; }
-    list.forEach(function (ev) {
+    if (!eventosActuales.length) { box.innerHTML = '<p class="sub">Todavía no hay eventos cargados.</p>'; return; }
+    eventosActuales.forEach(function (ev) {
       var d = new Date(ev.fecha + 'T00:00:00');
       var tm = tipoMeta[ev.tipo] || tipoMeta.evento;
       var row = document.createElement('div');
@@ -105,26 +110,36 @@
       row.innerHTML =
         '<div class="event-date"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('es-PY', {month:'short'}) + '</span></div>' +
         '<div style="flex:1"><div style="font-weight:600;font-size:.9rem">' + ev.titulo + '</div><div class="sub">' + (ev.hora || 'Todo el día') + '</div></div>' +
-        '<span class="badge ' + tm.color + '">' + tm.label + '</span>';
+        '<span class="badge ' + tm.color + '">' + tm.label + '</span>' +
+        '<button class="btn ghost sm" data-del="' + ev.id + '" title="Eliminar">✕</button>';
       box.appendChild(row);
     });
   }
 
-  document.getElementById('formEvento').addEventListener('submit', function (e) {
-    e.preventDefault();
-    var list = C21.loadCalendario();
-    list.push({
-      fecha: document.getElementById('fFecha').value,
-      tipo: document.getElementById('fTipo').value,
-      titulo: document.getElementById('fTitulo').value,
-      hora: document.getElementById('fHora').value
-    });
-    C21.saveCalendario(list);
-    e.target.reset();
-    render();
+  document.getElementById('eventList').addEventListener('click', async function (e) {
+    var id = e.target.dataset.del;
+    if (!id) return;
+    await C21Api.api('/api/calendario/' + id, { method: 'DELETE' });
+    await cargarEventos();
   });
 
-  render();
+  document.getElementById('formEvento').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    await C21Api.api('/api/calendario', {
+      method: 'POST',
+      body: JSON.stringify({
+        fecha: document.getElementById('fFecha').value,
+        tipo: document.getElementById('fTipo').value,
+        titulo: document.getElementById('fTitulo').value,
+        hora: document.getElementById('fHora').value || null,
+      }),
+    });
+    e.target.reset();
+    await cargarEventos();
+  });
+
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) { cargarEventos(); }
 </script>
 </body>
 </html>

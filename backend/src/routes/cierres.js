@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 router.get('/', requireAuth, async (req, res) => {
   const { rows } = await pool.query(
@@ -14,7 +14,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', requireAuth, requireAdmin, async (req, res) => {
   const {
     fechaCobro, tipoInmueble, tipoTransaccion, grossUsd,
     captadorId, colocadorId, direccion, observaciones,
@@ -41,7 +41,7 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, async (req, res) => {
+router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
   await pool.query('DELETE FROM cierres WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

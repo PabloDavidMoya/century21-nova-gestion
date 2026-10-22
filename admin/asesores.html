@@ -62,13 +62,11 @@
 
     <main class="main">
       <div class="row between" style="margin-bottom:18px;flex-wrap:wrap;gap:10px">
-        <p class="sub" style="margin:0" id="pageNote">Listado del equipo — nivel, cumplimiento de meta y producción. Datos de ejemplo.</p>
+        <p class="sub" style="margin:0" id="pageNote">Listado del equipo — nivel, cumplimiento de meta y producción (datos reales).</p>
         <div class="row gap-1">
-          <button class="btn ghost sm" id="btnConectar">Conectar con base real</button>
-          <button class="btn primary sm" id="btnNuevoAsesor" style="display:none">+ Nuevo asesor</button>
+          <button class="btn primary sm" id="btnNuevoAsesor">+ Nuevo asesor</button>
         </div>
       </div>
-      <div class="sub" id="liveBadgeWrap" style="display:none;margin:-10px 0 18px"><span class="badge green">Conectado a la base real</span></div>
 
       <div class="asesor-layout">
         <div class="card" style="padding:0">
@@ -93,19 +91,6 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="modalLogin">
-  <div class="modal" style="max-width:380px">
-    <div class="modal-head"><h2 style="font-size:1.05rem">Conectar con la base real</h2><button class="modal-close" data-close="modalLogin">✕</button></div>
-    <p class="sub" style="margin-bottom:14px">Esta acción habla con la API real (backend/), no con los datos de ejemplo.</p>
-    <form id="loginForm" style="display:flex;flex-direction:column;gap:12px">
-      <div class="field"><label>Email</label><input type="email" id="lgEmail" value="admin@century21nova.com" required></div>
-      <div class="field"><label>Contraseña</label><input type="password" id="lgPass" required></div>
-      <button type="submit" class="btn primary" style="padding:10px">Ingresar</button>
-      <div class="sub" id="loginError" style="display:none;color:var(--danger)"></div>
-    </form>
-  </div>
-</div>
-
 <div class="modal-backdrop" id="modalNuevo">
   <div class="modal" style="max-width:420px">
     <div class="modal-head"><h2 style="font-size:1.05rem">Nuevo asesor</h2><button class="modal-close" data-close="modalNuevo">✕</button></div>
@@ -123,16 +108,13 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
-<script src="../assets/js/mock-data.js"></script>
-<script src="../assets/js/real-data.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/charts.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  if (C21.isReal) document.getElementById('pageNote').textContent = 'Listado del equipo — nivel, cumplimiento de meta y producción. Datos reales (roster y metas al ' + C21.meta.cortePlanillaMetas + '; captaciones solo jul–oct).';
   var tbody = document.getElementById('tbody');
   var detail = document.getElementById('detailCard');
-  var live = false;       // true = conectado a la API real, false = datos de ejemplo/estáticos
   var asesoresActuales = [];
 
   function badgeNivel(a) { return '<span class="badge ' + a.nivel.key + '">' + a.nivel.label + '</span>'; }
@@ -167,12 +149,11 @@
     var a = getAsesor(id);
     Array.prototype.forEach.call(tbody.children, function (tr) { tr.classList.toggle('selected', tr.dataset.id === id); });
 
-    var editBlock = live
-      ? '<div class="field" style="margin-bottom:10px"><label>Meta anual (editable)</label><input type="number" id="editMeta" value="' + a.meta_anual + '"></div>' +
-        '<div class="field" style="margin-bottom:10px"><label>Estado</label><select id="editEstado"><option value="Activo"' + (a.estado === 'Activo' ? ' selected' : '') + '>Activo</option><option value="Inactivo"' + (a.estado === 'Inactivo' ? ' selected' : '') + '>Inactivo</option></select></div>' +
-        '<button class="btn primary sm" id="btnGuardarAsesor" style="margin-bottom:16px">Guardar cambios</button>' +
-        '<div class="sub" id="editMsg" style="display:none;margin-bottom:10px"></div>'
-      : '';
+    var editBlock =
+      '<div class="field" style="margin-bottom:10px"><label>Meta anual (editable)</label><input type="number" id="editMeta" value="' + a.meta_anual + '"></div>' +
+      '<div class="field" style="margin-bottom:10px"><label>Estado</label><select id="editEstado"><option value="Activo"' + (a.estado === 'Activo' ? ' selected' : '') + '>Activo</option><option value="Inactivo"' + (a.estado === 'Inactivo' ? ' selected' : '') + '>Inactivo</option></select></div>' +
+      '<button class="btn primary sm" id="btnGuardarAsesor" style="margin-bottom:16px">Guardar cambios</button>' +
+      '<div class="sub" id="editMsg" style="display:none;margin-bottom:10px"></div>';
 
     detail.innerHTML =
       '<div class="row gap-2" style="margin-bottom:14px">' +
@@ -182,7 +163,7 @@
       '<div class="wrap-tags" style="margin-bottom:16px">' + badgeNivel(a) + badgeEstado(a) + '</div>' +
       '<div class="grid grid-2" style="gap:10px;margin-bottom:16px">' +
         '<div><div class="sub">GCI acumulado</div><b>' + fmtUSD(a.gciAcumulado) + '</b></div>' +
-        '<div><div class="sub">Meta anual</div><b>' + fmtUSD(live ? a.meta_anual : a.metaAnual) + '</b></div>' +
+        '<div><div class="sub">Meta anual</div><b>' + fmtUSD(a.meta_anual) + '</b></div>' +
         '<div><div class="sub">Lados cerrados</div><b>' + a.lados + '</b></div>' +
         '<div><div class="sub">Captaciones</div><b>' + a.captaciones + '</b></div>' +
       '</div>' +
@@ -194,32 +175,25 @@
         : '<div class="sub">El desglose mensual por asesor todavía no está disponible.</div>');
     if (a.mensual && window.C21Charts) C21Charts.sparkline(document.getElementById('spark'), a.mensual);
 
-    if (live) {
-      document.getElementById('btnGuardarAsesor').addEventListener('click', async function () {
-        var msg = document.getElementById('editMsg');
-        try {
-          await C21Api.api('/api/asesores/' + a.id, {
-            method: 'PUT',
-            body: JSON.stringify({
-              metaAnual: parseFloat(document.getElementById('editMeta').value) || 0,
-              estado: document.getElementById('editEstado').value,
-            }),
-          });
-          msg.textContent = 'Guardado ✓'; msg.style.color = 'var(--ok)'; msg.style.display = '';
-          await cargarLive();
-          selectAsesor(id);
-        } catch (ex) {
-          msg.textContent = ex.message; msg.style.color = 'var(--danger)'; msg.style.display = '';
-        }
-      });
-    }
+    document.getElementById('btnGuardarAsesor').addEventListener('click', async function () {
+      var msg = document.getElementById('editMsg');
+      try {
+        await C21Api.api('/api/asesores/' + a.id, {
+          method: 'PUT',
+          body: JSON.stringify({
+            metaAnual: parseFloat(document.getElementById('editMeta').value) || 0,
+            estado: document.getElementById('editEstado').value,
+          }),
+        });
+        msg.textContent = 'Guardado ✓'; msg.style.color = 'var(--ok)'; msg.style.display = '';
+        await cargarLive();
+        selectAsesor(id);
+      } catch (ex) {
+        msg.textContent = ex.message; msg.style.color = 'var(--danger)'; msg.style.display = '';
+      }
+    });
   }
 
-  // ---- Modo estático (datos de ejemplo o real-data.js), como hasta ahora ----
-  asesoresActuales = C21.asesores;
-  renderTabla();
-
-  // ---- Conexión a la base real ----
   document.querySelectorAll('[data-close]').forEach(function (b) {
     b.addEventListener('click', function () { document.getElementById(b.dataset.close).classList.remove('open'); });
   });
@@ -229,7 +203,7 @@
   var ESTACIONALIDAD = [0.0847,0.0677,0.0760,0.0705,0.0743,0.1048,0.0896,0.0539,0.0919,0.0843,0.0861,0.1163];
   var MES_ACTUAL_IDX = 9;
   var PCT_ANIO_A_HOY = ESTACIONALIDAD.slice(0, MES_ACTUAL_IDX + 1).reduce(function (s, v) { return s + v; }, 0);
-  var HOY = new Date('2026-10-15T00:00:00');
+  var HOY = new Date('2026-10-21T00:00:00');
 
   function calcAntiguedad(ingresoFecha) {
     if (!ingresoFecha) return '—';
@@ -258,29 +232,6 @@
     renderTabla();
   }
 
-  document.getElementById('btnConectar').addEventListener('click', function () {
-    if (live) return;
-    document.getElementById('modalLogin').classList.add('open');
-  });
-
-  document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var err = document.getElementById('loginError'); err.style.display = 'none';
-    try {
-      await C21Api.login(document.getElementById('lgEmail').value, document.getElementById('lgPass').value);
-      live = true;
-      document.getElementById('modalLogin').classList.remove('open');
-      document.getElementById('btnConectar').style.display = 'none';
-      document.getElementById('btnNuevoAsesor').style.display = '';
-      document.getElementById('liveBadgeWrap').style.display = '';
-      detail.innerHTML = '<div class="detail-empty"><p>Elegí un asesor para ver y editar su ficha.</p></div>';
-      await cargarLive();
-    } catch (ex) {
-      err.textContent = ex.message + ' — ¿está corriendo el backend?';
-      err.style.display = '';
-    }
-  });
-
   document.getElementById('btnNuevoAsesor').addEventListener('click', function () {
     document.getElementById('modalNuevo').classList.add('open');
   });
@@ -307,14 +258,8 @@
     }
   });
 
-  // Si ya había sesión activa (de cierres.html, por ejemplo), conectar directo.
-  if (window.C21Api && C21Api.getToken()) {
-    live = true;
-    document.getElementById('btnConectar').style.display = 'none';
-    document.getElementById('btnNuevoAsesor').style.display = '';
-    document.getElementById('liveBadgeWrap').style.display = '';
-    cargarLive().catch(function () { live = false; C21Api.clearSession(); location.reload(); });
-  }
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) { cargarLive(); }
 </script>
 </body>
 </html>

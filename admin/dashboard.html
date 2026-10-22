@@ -91,8 +91,7 @@
     </header>
 
     <main class="main">
-      <p class="sub" style="margin-bottom:10px" id="dataSourceNote">Resumen de la oficina — año en curso, datos de ejemplo.</p>
-      <div id="dataSourceBanner" style="display:none;margin-bottom:22px"></div>
+      <p class="sub" style="margin-bottom:10px" id="dataSourceNote">Resumen de la oficina — año en curso, datos reales.</p>
 
       <div class="grid grid-4" style="margin-bottom:22px">
         <div class="card kpi">
@@ -111,22 +110,9 @@
           <div class="delta" id="kpiAsesoresSub" style="color:var(--text-3)"></div>
         </div>
         <div class="card kpi">
-          <div class="label">Captaciones del período</div>
+          <div class="label">Captaciones totales</div>
           <div class="value" id="kpiCaptaciones">—</div>
           <div class="delta" style="color:var(--text-3)" id="kpiColocadas"></div>
-        </div>
-      </div>
-
-      <div class="grid grid-2" style="margin-bottom:22px;align-items:start">
-        <div class="card" style="grid-column:1/-1">
-          <div class="row between" style="margin-bottom:14px">
-            <div>
-              <div class="card-title">Gross por mes — meta vs. real</div>
-              <p class="sub">Oficina completa, año en curso</p>
-            </div>
-            <span class="badge gold" id="tierBadge">—</span>
-          </div>
-          <svg id="chartMetaReal" class="chart" style="width:100%;height:220px"></svg>
         </div>
       </div>
 
@@ -157,62 +143,79 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
-<script src="../assets/js/mock-data.js"></script>
-<script src="../assets/js/real-data.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/charts.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  if (C21.isReal) {
-    document.getElementById('dataSourceNote').textContent = 'Resumen de la oficina — año en curso, con datos reales de las planillas.';
-    var banner = document.getElementById('dataSourceBanner');
-    banner.style.display = '';
-    banner.innerHTML = '<div class="card" style="padding:12px 16px;display:flex;gap:10px;align-items:center"><span class="badge green">Datos reales</span><span class="sub">Roster y metas al ' + C21.meta.cortePlanillaMetas + ' · cierres cargados hasta el ' + C21.meta.corteLedger + '. El gráfico de gross por mes muestra jul–oct (antes de julio no hay ledger cargado en este sistema).</span></div>';
+  function fmtUSD(n) { return '$ ' + Math.round(n).toLocaleString('es-PY'); }
+  window.C21 = window.C21 || {}; window.C21.fmtUSD = fmtUSD;
+
+  var ESTACIONALIDAD = [0.0847,0.0677,0.0760,0.0705,0.0743,0.1048,0.0896,0.0539,0.0919,0.0843,0.0861,0.1163];
+  var MES_ACTUAL_IDX = 9;
+  var PCT_ANIO_A_HOY = ESTACIONALIDAD.slice(0, MES_ACTUAL_IDX + 1).reduce(function (s, v) { return s + v; }, 0);
+
+  async function iniciar() {
+    var asesores = await C21Api.api('/api/asesores');
+    asesores.forEach(function (a) {
+      a.gci_acumulado = parseFloat(a.gci_acumulado);
+      a.meta_anual = parseFloat(a.meta_anual);
+      a.lados = parseInt(a.lados, 10);
+      a.captaciones = parseInt(a.captaciones, 10);
+    });
+
+    var realAcumulado = asesores.reduce(function (s, a) { return s + a.gci_acumulado; }, 0);
+    var metaAnual = asesores.reduce(function (s, a) { return s + a.meta_anual; }, 0);
+    var metaAHoy = metaAnual * PCT_ANIO_A_HOY;
+    var cumplimiento = metaAHoy ? Math.round((realAcumulado / metaAHoy) * 100) : 0;
+
+    document.getElementById('kpiGci').textContent = fmtUSD(realAcumulado);
+    document.getElementById('kpiGciDelta').textContent = 'Meta a hoy: ' + fmtUSD(metaAHoy);
+    document.getElementById('kpiCumpl').textContent = cumplimiento + '%';
+    document.getElementById('kpiCumplBar').style.width = Math.min(100, cumplimiento) + '%';
+
+    var activos = asesores.filter(function (a) { return a.estado === 'Activo'; });
+    document.getElementById('kpiAsesores').textContent = activos.length;
+    document.getElementById('kpiAsesoresSub').textContent = (asesores.length - activos.length) + ' inactivo(s)';
+
+    var captTotales = asesores.reduce(function (s, a) { return s + a.captaciones; }, 0);
+    var ladosTotales = asesores.reduce(function (s, a) { return s + a.lados; }, 0);
+    document.getElementById('kpiCaptaciones').textContent = captTotales;
+    document.getElementById('kpiColocadas').textContent = ladosTotales + ' lados totales';
+
+    var topAsesores = asesores.slice().sort(function (a, b) { return b.gci_acumulado - a.gci_acumulado; }).slice(0, 5);
+    if (topAsesores.length) {
+      C21Charts.rankBars(document.getElementById('rankBox'), topAsesores, topAsesores[0].gci_acumulado, function (a) { return a.gci_acumulado; }, function (a) { return a.nombre; });
+    }
+
+    var desafios = (await C21Api.api('/api/desafios')).filter(function (d) { return d.estado === 'Activo'; }).slice(0, 3);
+    var dw = document.getElementById('desafiosWidget');
+    dw.innerHTML = '';
+    desafios.forEach(function (d) {
+      var pct = Math.round((d.progreso / d.meta) * 100);
+      var row = document.createElement('div');
+      row.innerHTML =
+        '<div class="row between" style="margin-bottom:6px"><b style="font-size:.86rem">' + d.titulo + '</b><span class="sub">' + d.progreso + '/' + d.meta + ' ' + d.unidad + '</span></div>' +
+        '<div class="progress thin"><span style="width:' + Math.min(100,pct) + '%"></span></div>';
+      dw.appendChild(row);
+    });
+    if (!desafios.length) dw.innerHTML = '<p class="sub">No hay desafíos activos.</p>';
+
+    var ew = document.getElementById('eventsWidget');
+    ew.innerHTML = '';
+    (await C21Api.api('/api/calendario')).slice(0, 4).forEach(function (ev) {
+      var d = new Date(ev.fecha + 'T00:00:00');
+      var row = document.createElement('div');
+      row.className = 'event-row';
+      row.innerHTML =
+        '<div class="event-date"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('es-PY', {month:'short'}) + '</span></div>' +
+        '<div><div style="font-weight:600;font-size:.88rem">' + ev.titulo + '</div><div class="sub">' + (ev.hora || 'Todo el día') + '</div></div>';
+      ew.appendChild(row);
+    });
   }
-  var O = C21.oficina;
-  document.getElementById('kpiGci').textContent = C21.fmtUSD(O.realAcumulado);
-  document.getElementById('kpiGciDelta').textContent = 'Meta a hoy: ' + C21.fmtUSD(O.metaAcumuladaAHoy);
-  document.getElementById('kpiCumpl').textContent = O.cumplimiento + '%';
-  document.getElementById('kpiCumplBar').style.width = Math.min(100, O.cumplimiento) + '%';
 
-  var activos = C21.asesores.filter(function (a) { return a.estado === 'Activo'; });
-  document.getElementById('kpiAsesores').textContent = activos.length;
-  document.getElementById('kpiAsesoresSub').textContent = (C21.asesores.length - activos.length) + ' inactivo(s)';
-
-  var capt = C21.captacionesPorProducto.reduce(function (s, p) { return s + p.captadas; }, 0);
-  var coloc = C21.captacionesPorProducto.reduce(function (s, p) { return s + p.colocadas; }, 0);
-  document.getElementById('kpiCaptaciones').textContent = capt;
-  document.getElementById('kpiColocadas').textContent = coloc + ' colocadas' + (C21.isReal ? ' (jul–oct)' : '');
-
-  var tier = O.tiers.slice().reverse().filter(function (t) { return O.realAcumulado >= t.monto * (O.metaAcumuladaAHoy / O.metaAnual); })[0];
-  document.getElementById('tierBadge').textContent = 'Ritmo ' + (tier ? tier.label : 'inicial');
-
-  C21Charts.metaReal(document.getElementById('chartMetaReal'), C21.MESES, O.metaMensual, O.realMensual, C21.MES_ACTUAL_IDX);
-
-  var topAsesores = C21.asesores.slice().sort(function (a, b) { return b.gciAcumulado - a.gciAcumulado; }).slice(0, 5);
-  C21Charts.rankBars(document.getElementById('rankBox'), topAsesores, topAsesores[0].gciAcumulado, function (a) { return a.gciAcumulado; }, function (a) { return a.nombre; });
-
-  var desafios = C21.loadDesafios().filter(function (d) { return d.estado === 'Activo'; }).slice(0, 3);
-  var dw = document.getElementById('desafiosWidget');
-  desafios.forEach(function (d) {
-    var pct = Math.round((d.progreso / d.meta) * 100);
-    var row = document.createElement('div');
-    row.innerHTML =
-      '<div class="row between" style="margin-bottom:6px"><b style="font-size:.86rem">' + d.titulo + '</b><span class="sub">' + d.progreso + '/' + d.meta + ' ' + d.unidad + '</span></div>' +
-      '<div class="progress thin"><span style="width:' + Math.min(100,pct) + '%"></span></div>';
-    dw.appendChild(row);
-  });
-  if (!desafios.length) dw.innerHTML = '<p class="sub">No hay desafíos activos.</p>';
-
-  var ew = document.getElementById('eventsWidget');
-  C21.loadCalendario().slice(0, 4).forEach(function (ev) {
-    var d = new Date(ev.fecha + 'T00:00:00');
-    var row = document.createElement('div');
-    row.className = 'event-row';
-    row.innerHTML =
-      '<div class="event-date"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('es-PY', {month:'short'}) + '</span></div>' +
-      '<div><div style="font-weight:600;font-size:.88rem">' + ev.titulo + '</div><div class="sub">' + (ev.hora || 'Todo el día') + '</div></div>';
-    ew.appendChild(row);
-  });
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) { iniciar(); }
 </script>
 </body>
 </html>

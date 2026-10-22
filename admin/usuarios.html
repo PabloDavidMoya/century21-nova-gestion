@@ -61,20 +61,7 @@
     </header>
 
     <main class="main">
-      <div id="loginGate" class="login-gate">
-        <div class="card">
-          <div class="card-title" style="margin-bottom:4px">Conectar con la base real</div>
-          <p class="sub" style="margin-bottom:16px">Iniciá sesión con un usuario de administración (Broker, Gerente o Administración).</p>
-          <form id="loginForm" style="display:flex;flex-direction:column;gap:12px">
-            <div class="field"><label>Email</label><input type="email" id="lgEmail" value="admin@century21nova.com" required></div>
-            <div class="field"><label>Contraseña</label><input type="password" id="lgPass" required></div>
-            <button type="submit" class="btn primary" style="padding:10px">Ingresar</button>
-            <div class="api-error" id="loginError"></div>
-          </form>
-        </div>
-      </div>
-
-      <div id="appContent" style="display:none">
+      <div id="appContent">
         <div class="row between" style="margin-bottom:18px;flex-wrap:wrap;gap:10px">
           <p class="sub" style="margin:0">Quién puede entrar al panel y con qué rol. Hoy Broker, Gerente y Administración tienen el mismo nivel de acceso — se va a diferenciar más adelante.</p>
           <button class="btn primary sm" id="btnNuevo">+ Nuevo usuario</button>
@@ -117,10 +104,9 @@
 
 <script src="../assets/js/theme.js"></script>
 <script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  var gate = document.getElementById('loginGate');
-  var content = document.getElementById('appContent');
   var yo = null;
 
   document.querySelectorAll('[data-close]').forEach(function (b) {
@@ -182,8 +168,6 @@
 
   async function iniciar(usuario) {
     yo = usuario;
-    gate.style.display = 'none';
-    content.style.display = '';
     document.getElementById('whoNombre').textContent = usuario.nombre;
     document.getElementById('whoRol').textContent = ROL_LABEL[usuario.rol];
     document.getElementById('avIni').textContent = usuario.nombre.charAt(0).toUpperCase();
@@ -194,19 +178,8 @@
     await cargarUsuarios();
   }
 
-  if (C21Api.getToken() && C21Api.getUsuario()) { iniciar(C21Api.getUsuario()).catch(function () { C21Api.clearSession(); location.reload(); }); }
-
-  document.getElementById('loginForm').addEventListener('submit', async function (e) {
-    e.preventDefault();
-    var err = document.getElementById('loginError'); err.style.display = 'none';
-    try {
-      var usuario = await C21Api.login(document.getElementById('lgEmail').value, document.getElementById('lgPass').value);
-      await iniciar(usuario);
-    } catch (ex) {
-      err.textContent = ex.message + ' — ¿está corriendo el backend (npm run dev) en localhost:3000?';
-      err.style.display = '';
-    }
-  });
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) { iniciar(USUARIO); }
 
   document.getElementById('btnNuevo').addEventListener('click', function () {
     document.getElementById('modalNuevo').classList.add('open');

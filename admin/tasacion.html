@@ -73,6 +73,11 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
+<script>
+  C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+</script>
 </body>
 </html>

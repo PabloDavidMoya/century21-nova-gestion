@@ -61,7 +61,7 @@
 
     <main class="main">
       <div class="row between" style="margin-bottom:16px;flex-wrap:wrap;gap:12px">
-        <p class="sub">Desafíos que la empresa le propone al equipo — captación, prospección, nivel. Se guardan en este navegador (demo).</p>
+        <p class="sub">Desafíos que la empresa le propone al equipo — captación, prospección, nivel.</p>
         <button class="btn primary" id="btnNuevo">+ Nuevo desafío</button>
       </div>
 
@@ -102,32 +102,39 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
-<script src="../assets/js/mock-data.js"></script>
-<script src="../assets/js/real-data.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
   var grid = document.getElementById('grid');
   var filtro = 'Todos';
+  var desafiosActuales = [];
 
-  C21.asesores.forEach(function (a) {
-    var o = document.createElement('option'); o.value = a.id; o.textContent = a.nombre;
-    document.getElementById('fAsignado').appendChild(o);
-  });
+  async function cargarAsesoresEnSelect() {
+    var asesores = await C21Api.api('/api/asesores');
+    var sel = document.getElementById('fAsignado');
+    asesores.forEach(function (a) {
+      var o = document.createElement('option'); o.value = a.id; o.textContent = a.nombre;
+      sel.appendChild(o);
+    });
+  }
+
+  async function cargarDesafios() {
+    desafiosActuales = await C21Api.api('/api/desafios');
+    render();
+  }
 
   function nombreAsignado(d) {
-    if (d.asignadoA === 'Todos') return 'Todo el equipo';
-    var a = C21.getAsesor(d.asignadoA);
-    return a ? a.nombre : d.asignadoA;
+    return d.asignado_a === null ? 'Todo el equipo' : (d.asignado_nombre || '—');
   }
 
   function render() {
-    var list = C21.loadDesafios();
-    var filtrados = filtro === 'Todos' ? list : list.filter(function (d) { return d.estado === filtro; });
+    var filtrados = filtro === 'Todos' ? desafiosActuales : desafiosActuales.filter(function (d) { return d.estado === filtro; });
     grid.innerHTML = '';
     if (!filtrados.length) grid.innerHTML = '<p class="sub">No hay desafíos en esta categoría.</p>';
     filtrados.forEach(function (d) {
       var pct = Math.min(100, Math.round((d.progreso / d.meta) * 100));
-      var vencido = new Date(d.vence) < new Date() && d.estado === 'Activo';
+      var vencido = d.vence && new Date(d.vence) < new Date() && d.estado === 'Activo';
       var card = document.createElement('div');
       card.className = 'challenge-card';
       card.innerHTML =
@@ -137,9 +144,9 @@
         '</div>' +
         '<p>' + (d.descripcion || '') + '</p>' +
         '<div class="progress"><span style="width:' + pct + '%"></span></div>' +
-        '<div class="meta"><span>' + d.progreso + ' / ' + d.meta + ' ' + d.unidad + '</span><span>Vence ' + new Date(d.vence + 'T00:00:00').toLocaleDateString('es-PY') + '</span></div>' +
+        '<div class="meta"><span>' + d.progreso + ' / ' + d.meta + ' ' + d.unidad + '</span><span>' + (d.vence ? 'Vence ' + new Date(d.vence + 'T00:00:00').toLocaleDateString('es-PY') : '') + '</span></div>' +
         '<div class="card-actions">' +
-          (d.estado === 'Activo' ? '<button class="btn sm" data-done="' + d.id + '">Marcar cumplido</button>' : '') +
+          (d.estado === 'Activo' ? '<button class="btn sm" data-done="' + d.id + '" data-meta="' + d.meta + '">Marcar cumplido</button>' : '') +
           '<button class="btn sm ghost" data-del="' + d.id + '">Eliminar</button>' +
         '</div>';
       grid.appendChild(card);
@@ -152,11 +159,16 @@
     b.classList.add('active'); filtro = b.dataset.f; render();
   });
 
-  grid.addEventListener('click', function (e) {
-    var list = C21.loadDesafios();
+  grid.addEventListener('click', async function (e) {
     var doneId = e.target.dataset.done, delId = e.target.dataset.del;
-    if (doneId) { list = list.map(function (d) { return d.id === doneId ? Object.assign({}, d, {estado:'Cumplido', progreso: d.meta}) : d; }); C21.saveDesafios(list); render(); }
-    if (delId) { list = list.filter(function (d) { return d.id !== delId; }); C21.saveDesafios(list); render(); }
+    if (doneId) {
+      await C21Api.api('/api/desafios/' + doneId, { method: 'PATCH', body: JSON.stringify({ estado: 'Cumplido', progreso: Number(e.target.dataset.meta) }) });
+      await cargarDesafios();
+    }
+    if (delId) {
+      await C21Api.api('/api/desafios/' + delId, { method: 'DELETE' });
+      await cargarDesafios();
+    }
   });
 
   var backdrop = document.getElementById('modalBackdrop');
@@ -164,30 +176,33 @@
   document.getElementById('modalClose').addEventListener('click', function () { backdrop.classList.remove('open'); });
   backdrop.addEventListener('click', function (e) { if (e.target === backdrop) backdrop.classList.remove('open'); });
 
-  document.getElementById('formDesafio').addEventListener('submit', function (e) {
+  document.getElementById('formDesafio').addEventListener('submit', async function (e) {
     e.preventDefault();
-    var list = C21.loadDesafios();
-    list.unshift({
-      id: 'd' + Date.now(),
-      titulo: document.getElementById('fTitulo').value,
-      descripcion: document.getElementById('fDesc').value,
-      tipo: document.getElementById('fTipo').value,
-      asignadoA: document.getElementById('fAsignado').value,
-      meta: Number(document.getElementById('fMeta').value) || 1,
-      progreso: 0,
-      unidad: document.getElementById('fUnidad').value || 'unidades',
-      vence: document.getElementById('fVence').value,
-      estado: 'Activo'
+    var asignado = document.getElementById('fAsignado').value;
+    await C21Api.api('/api/desafios', {
+      method: 'POST',
+      body: JSON.stringify({
+        titulo: document.getElementById('fTitulo').value,
+        descripcion: document.getElementById('fDesc').value,
+        tipo: document.getElementById('fTipo').value,
+        asignadoA: asignado === 'Todos' ? null : asignado,
+        meta: Number(document.getElementById('fMeta').value) || 1,
+        unidad: document.getElementById('fUnidad').value || 'unidades',
+        vence: document.getElementById('fVence').value,
+      }),
     });
-    C21.saveDesafios(list);
     e.target.reset();
     backdrop.classList.remove('open');
     filtro = 'Todos';
     document.querySelectorAll('#filters button').forEach(function (x) { x.classList.toggle('active', x.dataset.f === 'Todos'); });
-    render();
+    await cargarDesafios();
   });
 
-  render();
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) {
+    cargarAsesoresEnSelect();
+    cargarDesafios();
+  }
 </script>
 </body>
 </html>

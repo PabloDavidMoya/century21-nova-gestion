@@ -58,8 +58,7 @@
     </header>
 
     <main class="main">
-      <p class="sub" style="margin-bottom:10px" id="pageNote">Meta anual de oficina — mes a mes, real y proyección a fin de año. Equivale a la planilla "META NOVA".</p>
-      <div id="dataSourceBanner" style="display:none;margin-bottom:18px"></div>
+      <p class="sub" style="margin-bottom:10px" id="pageNote">Meta anual de oficina — acumulado real vs. meta, y meta individual por asesor.</p>
 
       <div class="grid grid-4" style="margin-bottom:20px">
         <div class="card kpi"><div class="label">Meta anual</div><div class="value" id="kMetaAnual">—</div></div>
@@ -69,13 +68,8 @@
       </div>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-title" style="margin-bottom:14px">Detalle mensual</div>
-        <div class="table-wrap">
-          <table class="data meta-table">
-            <thead><tr id="headRow"><th>Concepto</th></tr></thead>
-            <tbody id="bodyRows"></tbody>
-          </table>
-        </div>
+        <div class="card-title" style="margin-bottom:6px">Detalle mensual</div>
+        <p class="sub">El desglose mes a mes se habilita cuando esté cargado el ledger completo de cierres del año — por ahora mostramos el acumulado arriba.</p>
       </div>
 
       <div class="card">
@@ -87,58 +81,52 @@
 </div>
 
 <script src="../assets/js/theme.js"></script>
-<script src="../assets/js/mock-data.js"></script>
-<script src="../assets/js/real-data.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  if (C21.isReal) {
-    document.getElementById('pageNote').textContent = 'Meta anual de oficina — mes a mes, real y proyección a fin de año. Datos reales (metas al ' + C21.meta.cortePlanillaMetas + ').';
-    var banner = document.getElementById('dataSourceBanner');
-    banner.style.display = '';
-    banner.innerHTML = '<div class="card" style="padding:12px 16px;display:flex;gap:10px;align-items:center"><span class="badge green">Datos reales</span><span class="sub">"Real a hoy" y el cumplimiento por asesor usan el acumulado del año completo. El desglose mes a mes de abajo solo tiene cierres cargados desde julio — por eso enero–junio aparecen en blanco, no en cero.</span></div>';
+  function fmtUSD(n) { return '$ ' + Math.round(n).toLocaleString('es-PY'); }
+
+  var ESTACIONALIDAD = [0.0847,0.0677,0.0760,0.0705,0.0743,0.1048,0.0896,0.0539,0.0919,0.0843,0.0861,0.1163];
+  var MES_ACTUAL_IDX = 9;
+  var PCT_ANIO_A_HOY = ESTACIONALIDAD.slice(0, MES_ACTUAL_IDX + 1).reduce(function (s, v) { return s + v; }, 0);
+
+  async function iniciar() {
+    var asesores = await C21Api.api('/api/asesores');
+    asesores.forEach(function (a) {
+      a.gci_acumulado = parseFloat(a.gci_acumulado);
+      a.meta_anual = parseFloat(a.meta_anual);
+    });
+
+    var realAcumulado = asesores.reduce(function (s, a) { return s + a.gci_acumulado; }, 0);
+    var metaAnual = asesores.reduce(function (s, a) { return s + a.meta_anual; }, 0);
+    var metaAHoy = metaAnual * PCT_ANIO_A_HOY;
+    var cumplimiento = metaAHoy ? Math.round((realAcumulado / metaAHoy) * 100) : 0;
+    var proyAnual = PCT_ANIO_A_HOY ? Math.round(realAcumulado / PCT_ANIO_A_HOY) : 0;
+
+    document.getElementById('kMetaAnual').textContent = fmtUSD(metaAnual);
+    document.getElementById('kReal').textContent = fmtUSD(realAcumulado);
+    document.getElementById('kProy').textContent = fmtUSD(proyAnual);
+    document.getElementById('kCumpl').textContent = cumplimiento + '%';
+
+    var il = document.getElementById('individualList');
+    il.innerHTML = '';
+    asesores.forEach(function (a) {
+      var metaAHoyAsesor = a.meta_anual * PCT_ANIO_A_HOY;
+      var cumplAsesor = metaAHoyAsesor ? Math.round((a.gci_acumulado / metaAHoyAsesor) * 100) : 0;
+      var row = document.createElement('div');
+      row.className = 'asesor-meta-row';
+      row.innerHTML =
+        '<div style="width:170px"><b style="font-size:.88rem">' + a.nombre + '</b><div class="sub">' + a.nivel.label + '</div></div>' +
+        '<div style="flex:1"><div class="progress"><span style="width:' + Math.min(100, cumplAsesor) + '%"></span></div></div>' +
+        '<div style="width:70px;text-align:right;font-weight:700">' + cumplAsesor + '%</div>' +
+        '<div style="width:170px;text-align:right" class="sub">' + fmtUSD(a.gci_acumulado) + ' / ' + fmtUSD(a.meta_anual) + '</div>';
+      il.appendChild(row);
+    });
   }
-  var O = C21.oficina, idx = C21.MES_ACTUAL_IDX;
-  var proyAnual = Math.round((O.realAcumulado / (idx + 1)) * 12);
 
-  document.getElementById('kMetaAnual').textContent = C21.fmtUSD(O.metaAnual);
-  document.getElementById('kReal').textContent = C21.fmtUSD(O.realAcumulado);
-  document.getElementById('kProy').textContent = C21.fmtUSD(proyAnual);
-  document.getElementById('kCumpl').textContent = O.cumplimiento + '%';
-
-  var head = document.getElementById('headRow');
-  C21.MESES.forEach(function (m) { var th = document.createElement('th'); th.textContent = m; head.appendChild(th); });
-  var thTotal = document.createElement('th'); thTotal.textContent = 'Total'; head.appendChild(thTotal);
-
-  function row(label, values, fmt, extraClass) {
-    var tr = document.createElement('tr');
-    if (extraClass) tr.className = extraClass;
-    var tds = '<td>' + label + '</td>';
-    values.forEach(function (v) { tds += '<td>' + fmt(v) + '</td>'; });
-    tr.innerHTML = tds;
-    document.getElementById('bodyRows').appendChild(tr);
-  }
-  var usd = function (v) { return v ? C21.fmtUSD(v) : '—'; };
-  var pct = function (v) { return v ? Math.round(v * 100) + '%' : '—'; };
-
-  var metaConTotal = O.metaMensual.concat([O.metaAnual]);
-  var realConTotal = O.realMensual.map(function (v, i) { return i <= idx ? v : null; }).concat([O.realAcumulado]);
-  var cumplMensual = O.metaMensual.map(function (m, i) { return i <= idx ? (O.realMensual[i] / m) : null; }).concat([O.cumplimiento / 100]);
-
-  row('Meta', metaConTotal, usd);
-  row('Real', realConTotal, function (v) { return v == null ? '—' : usd(v); }, '');
-  row('% cumplimiento', cumplMensual, function (v) { return v == null ? '—' : pct(v); });
-
-  var il = document.getElementById('individualList');
-  C21.asesores.forEach(function (a) {
-    var row = document.createElement('div');
-    row.className = 'asesor-meta-row';
-    row.innerHTML =
-      '<div style="width:170px"><b style="font-size:.88rem">' + a.nombre + '</b><div class="sub">' + a.nivel.label + '</div></div>' +
-      '<div style="flex:1"><div class="progress"><span style="width:' + Math.min(100, a.cumplimiento) + '%"></span></div></div>' +
-      '<div style="width:70px;text-align:right;font-weight:700">' + a.cumplimiento + '%</div>' +
-      '<div style="width:170px;text-align:right" class="sub">' + C21.fmtUSD(a.gciAcumulado) + ' / ' + C21.fmtUSD(a.metaAnual) + '</div>';
-    il.appendChild(row);
-  });
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
+  if (USUARIO) { iniciar(); }
 </script>
 </body>
 </html>

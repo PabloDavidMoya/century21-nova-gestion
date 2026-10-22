@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- para gen_random_uuid()
 -- prototipo (datos de prueba, se recargan con "npm run seed"). Antes de que
 -- haya datos reales cargados a mano en el panel, cambiar esto por
 -- migraciones incrementales (ALTER TABLE) que no pierdan información.
-DROP TABLE IF EXISTS mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
+DROP TABLE IF EXISTS facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
 
 CREATE TABLE asesores (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -88,3 +88,23 @@ CREATE TABLE mensualidades (
   fecha_pago DATE,
   UNIQUE (asesor_id, anio, mes)
 );
+
+-- Boletas / facturas de proveedores — carga manual de Administración.
+-- Equivalente a las planillas "FC" (flujo de caja) de la oficina.
+CREATE TABLE facturas_proveedores (
+  id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fecha               DATE NOT NULL,
+  proveedor           TEXT NOT NULL,
+  categoria           TEXT,
+  concepto            TEXT,
+  monto_usd           NUMERIC(12,2) NOT NULL,
+  moneda_original     TEXT NOT NULL DEFAULT 'USD',
+  monto_original      NUMERIC(12,2),
+  numero_comprobante  TEXT,
+  estado              TEXT NOT NULL DEFAULT 'Pendiente' CHECK (estado IN ('Pendiente', 'Pagada')),
+  fecha_pago          DATE,
+  cargado_por         UUID REFERENCES usuarios(id),
+  observaciones       TEXT,
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_facturas_fecha ON facturas_proveedores (fecha);

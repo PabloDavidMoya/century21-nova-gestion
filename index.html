@@ -21,8 +21,7 @@
     margin-top:16px;padding:10px 12px;border-radius:10px;background:var(--surface-2);
     border:1px solid var(--border);font-size:.74rem;color:var(--text-3);line-height:1.5;
   }
-  .asesor-select{display:none}
-  .asesor-select.show{display:flex}
+  .api-error{color:var(--danger);font-size:.82rem;margin-top:10px;display:none}
 </style>
 </head>
 <body>
@@ -38,68 +37,50 @@
   <div class="login-card">
     <div class="login-banner"><img src="assets/img/nova_fondo.png" alt="Century 21 Nova"></div>
 
-    <div class="role-switch" role="tablist" aria-label="Tipo de acceso">
-      <button type="button" class="active" data-role="admin">Administración</button>
-      <button type="button" data-role="asesor">Asesor/a</button>
-    </div>
-
     <form id="loginForm">
       <div class="field" style="margin-bottom:14px">
-        <label for="user">Usuario</label>
-        <input type="text" id="user" placeholder="nombre@century21nova.com" autocomplete="username">
+        <label for="user">Email</label>
+        <input type="email" id="user" placeholder="nombre@century21nova.com" autocomplete="username" required>
       </div>
       <div class="field" style="margin-bottom:10px">
         <label for="pass">Contraseña</label>
-        <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password">
-      </div>
-
-      <div class="field asesor-select" id="asesorSelectWrap" style="margin-bottom:10px">
-        <label for="asesorSelect">Ver como (demo)</label>
-        <select id="asesorSelect"></select>
+        <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password" required>
       </div>
 
       <button type="submit" class="btn primary" style="width:100%;margin-top:10px;padding:12px">Ingresar</button>
+      <div class="api-error" id="loginError"></div>
     </form>
 
     <p class="demo-note">
-      Prototipo de diseño — el acceso todavía no está conectado a la base de datos real.
-      Cualquier usuario y contraseña te deja entrar para revisar el panel correspondiente.
+      Accedé con tu usuario y contraseña. El panel que ves (Broker, Administración o Asesor/a)
+      depende del rol de tu cuenta — lo asigna quien administra los accesos.
     </p>
   </div>
   <p class="login-foot" style="position:relative;z-index:2">© Century 21 Nova — Plataforma de gestión interna</p>
 </div>
 
 <script src="assets/js/theme.js"></script>
-<script src="assets/js/mock-data.js"></script>
-<script src="assets/js/real-data.js"></script>
+<script src="assets/js/api.js"></script>
 <script>
-  var role = 'admin';
-  var roleBtns = document.querySelectorAll('.role-switch button');
-  var asesorWrap = document.getElementById('asesorSelectWrap');
-  var asesorSelect = document.getElementById('asesorSelect');
+  // Si ya había sesión real de una visita anterior, entra directo a su panel.
+  (function () {
+    var u = C21Api.getUsuario();
+    if (C21Api.getToken() && u) {
+      window.location.href = u.rol === 'asesor' ? 'asesor/panel.html' : 'admin/dashboard.html';
+    }
+  })();
 
-  C21.asesores.forEach(function (a) {
-    var opt = document.createElement('option');
-    opt.value = a.id; opt.textContent = a.nombre;
-    asesorSelect.appendChild(opt);
-  });
-
-  roleBtns.forEach(function (b) {
-    b.addEventListener('click', function () {
-      roleBtns.forEach(function (x) { x.classList.remove('active'); });
-      b.classList.add('active');
-      role = b.getAttribute('data-role');
-      asesorWrap.classList.toggle('show', role === 'asesor');
-    });
-  });
-
-  document.getElementById('loginForm').addEventListener('submit', function (e) {
+  document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+    var err = document.getElementById('loginError');
+    err.style.display = 'none';
     try {
-      sessionStorage.setItem('c21-rol', role);
-      if (role === 'asesor') sessionStorage.setItem('c21-asesor', asesorSelect.value);
-    } catch (err) {}
-    window.location.href = role === 'admin' ? 'admin/dashboard.html' : 'asesor/panel.html';
+      var usuario = await C21Api.login(document.getElementById('user').value, document.getElementById('pass').value);
+      window.location.href = usuario.rol === 'asesor' ? 'asesor/panel.html' : 'admin/dashboard.html';
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.style.display = '';
+    }
   });
 </script>
 </body>
