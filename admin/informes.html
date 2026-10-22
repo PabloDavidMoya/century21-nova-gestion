@@ -10,6 +10,9 @@
 <link rel="stylesheet" href="../assets/css/components.css">
 <style>
   .report-frame{width:100%;height:70vh;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}
+  .mes-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .mes-bar-label{width:70px;font-size:.8rem;color:var(--text-2)}
+  .mes-bar-val{width:110px;text-align:right;font-size:.8rem;font-weight:700}
 </style>
 </head>
 <body>
@@ -56,20 +59,30 @@
     </header>
 
     <main class="main">
-      <div class="card" style="margin-bottom:20px">
-        <div class="row between" style="flex-wrap:wrap;gap:12px">
-          <div>
-            <div class="card-title">Reporte de cierres (jul–oct 2026)</div>
-            <p class="sub">El informe detallado de cierres, gross y equipo que ya está publicado por separado.</p>
-          </div>
-          <a class="btn primary" href="https://pablodavidmoya.github.io/nova/" target="_blank" rel="noopener">Abrir en pestaña nueva ↗</a>
+      <p class="sub" style="margin-bottom:18px">Datos reales en vivo desde la base — todos los cierres confirmados del año, mes a mes.</p>
+
+      <div class="grid grid-4" style="margin-bottom:22px">
+        <div class="card kpi"><div class="label">GCI confirmado (año)</div><div class="value" id="kGci">—</div></div>
+        <div class="card kpi"><div class="label">Cierres confirmados</div><div class="value" id="kCant">—</div></div>
+        <div class="card kpi"><div class="label">Ventas / Alquileres</div><div class="value" id="kTipos">—</div></div>
+        <div class="card kpi"><div class="label">Pendientes de aprobar</div><div class="value" id="kPend">—</div></div>
+      </div>
+
+      <div class="grid grid-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">GCI por mes</div>
+          <div id="mesesBox"></div>
+        </div>
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Por tipo de inmueble</div>
+          <div id="tipoInmuebleBox"></div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px">Vista previa</div>
-        <iframe class="report-frame" src="https://pablodavidmoya.github.io/nova/" title="Reporte de cierres Century 21 Nova" loading="lazy"></iframe>
-        <p class="sub" style="margin-top:10px">Si no se ve el contenido acá adentro, usá el botón "Abrir en pestaña nueva".</p>
+      <div class="card" style="margin-top:22px">
+        <div class="card-title" style="margin-bottom:12px">Reporte anterior (estático, jul–oct, publicado por separado)</div>
+        <p class="sub" style="margin-bottom:10px">Quedó de una versión previa, antes de tener la base real conectada — ya no hace falta para ver los números del año, pero lo dejamos a mano por si sirve de referencia.</p>
+        <a class="btn ghost sm" href="https://pablodavidmoya.github.io/nova/" target="_blank" rel="noopener">Abrir reporte anterior ↗</a>
       </div>
     </main>
   </div>
@@ -80,7 +93,62 @@
 <script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  C21Guard.requireRole(['broker'], 1);
+  function fmtUSD(n) { return '$ ' + Math.round(n).toLocaleString('es-PY'); }
+  var MESES_LABEL = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Set','Oct','Nov','Dic'];
+
+  function barras(container, pares, max) {
+    container.innerHTML = '';
+    if (!pares.length) { container.innerHTML = '<p class="sub">Todavía no hay datos.</p>'; return; }
+    pares.forEach(function (p) {
+      var pct = Math.max(4, Math.round((p.valor / max) * 100));
+      var row = document.createElement('div');
+      row.className = 'mes-bar-row';
+      row.innerHTML =
+        '<div class="mes-bar-label">' + p.label + '</div>' +
+        '<div class="progress" style="flex:1"><span style="width:' + pct + '%"></span></div>' +
+        '<div class="mes-bar-val">' + fmtUSD(p.valor) + '</div>';
+      container.appendChild(row);
+    });
+  }
+
+  async function iniciar() {
+    var cierres = await C21Api.api('/api/cierres');
+    var confirmados = cierres.filter(function (c) { return c.estado === 'Confirmado'; });
+    var pendientes = cierres.filter(function (c) { return c.estado === 'Pendiente'; });
+
+    var gciTotal = confirmados.reduce(function (s, c) { return s + parseFloat(c.gross_usd); }, 0);
+    var ventas = confirmados.filter(function (c) { return c.tipo_transaccion === 'VENTA'; }).length;
+    var alquileres = confirmados.filter(function (c) { return c.tipo_transaccion === 'ALQUILER'; }).length;
+
+    document.getElementById('kGci').textContent = fmtUSD(gciTotal);
+    document.getElementById('kCant').textContent = confirmados.length;
+    document.getElementById('kTipos').textContent = ventas + ' / ' + alquileres;
+    document.getElementById('kPend').textContent = pendientes.length;
+
+    var porMes = {};
+    confirmados.forEach(function (c) {
+      var mes = new Date(c.fecha_cobro).getUTCMonth();
+      porMes[mes] = (porMes[mes] || 0) + parseFloat(c.gross_usd);
+    });
+    var mesesConDatos = Object.keys(porMes).map(Number).sort(function (a, b) { return a - b; });
+    var paresMes = mesesConDatos.map(function (m) { return { label: MESES_LABEL[m], valor: porMes[m] }; });
+    var maxMes = Math.max.apply(null, paresMes.map(function (p) { return p.valor; }).concat([1]));
+    barras(document.getElementById('mesesBox'), paresMes, maxMes);
+
+    var porTipoInmueble = {};
+    confirmados.forEach(function (c) {
+      var t = c.tipo_inmueble || 'Sin especificar';
+      porTipoInmueble[t] = (porTipoInmueble[t] || 0) + parseFloat(c.gross_usd);
+    });
+    var paresTipo = Object.keys(porTipoInmueble)
+      .map(function (t) { return { label: t, valor: porTipoInmueble[t] }; })
+      .sort(function (a, b) { return b.valor - a.valor; });
+    var maxTipo = Math.max.apply(null, paresTipo.map(function (p) { return p.valor; }).concat([1]));
+    barras(document.getElementById('tipoInmuebleBox'), paresTipo, maxTipo);
+  }
+
+  var USUARIO = C21Guard.requireRole(['broker'], 1);
+  if (USUARIO) { iniciar(); }
 </script>
 </body>
 </html>

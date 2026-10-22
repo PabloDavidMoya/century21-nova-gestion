@@ -18,7 +18,7 @@ router.get('/', requireAuth, async (req, res) => {
      LEFT JOIN asesores co ON co.id = c.colocador_id
      ${where}
      ORDER BY c.fecha_cobro DESC, c.created_at DESC
-     LIMIT 100`,
+     LIMIT 2000`,
     vals
   );
   res.json(rows);
