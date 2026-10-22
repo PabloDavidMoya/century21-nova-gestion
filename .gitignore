@@ -10,3 +10,7 @@ node_modules/
 # puede conectarse directo a la base de producción.
 .env
 backend/.env
+claves_nova.txt
+claves*.txt
+*contraseñas*.txt
+*password*.txt

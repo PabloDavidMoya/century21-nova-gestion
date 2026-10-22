@@ -22,6 +22,16 @@
     border:1px solid var(--border);font-size:.74rem;color:var(--text-3);line-height:1.5;
   }
   .api-error{color:var(--danger);font-size:.82rem;margin-top:10px;display:none}
+  .pass-wrap{position:relative}
+  .pass-wrap input{padding-right:40px}
+  .pass-toggle{
+    position:absolute;right:4px;top:50%;transform:translateY(-50%);
+    background:none;border:none;cursor:pointer;color:var(--text-3);
+    padding:6px;display:flex;align-items:center;justify-content:center;
+  }
+  .pass-toggle:hover{color:var(--text)}
+  .pass-toggle svg{width:18px;height:18px}
+  .pass-toggle .icon-eye-off{display:none}
 </style>
 </head>
 <body>
@@ -44,7 +54,13 @@
       </div>
       <div class="field" style="margin-bottom:10px">
         <label for="pass">Contraseña</label>
-        <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password" required>
+        <div class="pass-wrap">
+          <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="pass-toggle" id="passToggle" aria-label="Mostrar contraseña">
+            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 4.22-5.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+          </button>
+        </div>
       </div>
 
       <button type="submit" class="btn primary" style="width:100%;margin-top:10px;padding:12px">Ingresar</button>
@@ -69,6 +85,16 @@
       window.location.href = u.rol === 'asesor' ? 'asesor/panel.html' : 'admin/dashboard.html';
     }
   })();
+
+  document.getElementById('passToggle').addEventListener('click', function () {
+    var pass = document.getElementById('pass');
+    var mostrar = pass.type === 'password';
+    pass.type = mostrar ? 'text' : 'password';
+    this.classList.toggle('showing', mostrar);
+    this.querySelector('.icon-eye').style.display = mostrar ? 'none' : '';
+    this.querySelector('.icon-eye-off').style.display = mostrar ? '' : 'none';
+    this.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
+  });
 
   document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
