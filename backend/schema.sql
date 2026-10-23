@@ -151,6 +151,8 @@ CREATE TABLE proformas (
   propietario_telefono TEXT,
   propietario_fuente   TEXT,
   comprador_nombre     TEXT,
+  comprador_doc_tipo   TEXT CHECK (comprador_doc_tipo IN ('Cédula', 'RUC', 'DNI', 'Pasaporte')),
+  comprador_doc_numero TEXT,
   comprador_telefono   TEXT,
   comprador_fuente     TEXT,
   tipo_transaccion     TEXT CHECK (tipo_transaccion IN ('Venta', 'Alquiler')),

@@ -125,10 +125,17 @@
             <div class="field"><label>Fuente del propietario</label><input type="text" id="fPropFuente" placeholder="ej: Referido, Portal, Captación directa"></div>
 
             <div class="card-title" style="font-size:.85rem;margin-top:4px">Comprador / inquilino</div>
+            <div class="field"><label>Nombre</label><input type="text" id="fCompNombre"></div>
             <div class="grid grid-2" style="gap:14px">
-              <div class="field"><label>Nombre</label><input type="text" id="fCompNombre"></div>
-              <div class="field"><label>Teléfono</label><input type="text" id="fCompTelefono"></div>
+              <div class="field"><label>Tipo de documento</label>
+                <select id="fCompDocTipo">
+                  <option value="">—</option>
+                  <option>Cédula</option><option>RUC</option><option>DNI</option><option>Pasaporte</option>
+                </select>
+              </div>
+              <div class="field"><label>Número de documento</label><input type="text" id="fCompDocNumero" maxlength="30"></div>
             </div>
+            <div class="field"><label>Teléfono</label><input type="text" id="fCompTelefono"></div>
             <div class="field"><label>Fuente del comprador/inquilino</label><input type="text" id="fCompFuente" placeholder="ej: Portal, Cartel, Referido"></div>
 
             <div class="card-title" style="font-size:.85rem;margin-top:4px">Cierre</div>
@@ -217,6 +224,7 @@
     <h3>Comprador / Inquilino</h3>
     <table>
       <tr><td class="p-label">Nombre</td><td id="pCompNombre">—</td></tr>
+      <tr><td class="p-label">Documento</td><td id="pCompDoc">—</td></tr>
       <tr><td class="p-label">Teléfono</td><td id="pCompTelefono">—</td></tr>
       <tr><td class="p-label">Fuente</td><td id="pCompFuente">—</td></tr>
     </table>
@@ -327,6 +335,7 @@
     document.getElementById('pPropTelefono').textContent = val(p.propietario_telefono);
     document.getElementById('pPropFuente').textContent = val(p.propietario_fuente);
     document.getElementById('pCompNombre').textContent = val(p.comprador_nombre);
+    document.getElementById('pCompDoc').textContent = (p.comprador_doc_tipo && p.comprador_doc_numero) ? (p.comprador_doc_tipo + ' ' + p.comprador_doc_numero) : val(p.comprador_doc_numero);
     document.getElementById('pCompTelefono').textContent = val(p.comprador_telefono);
     document.getElementById('pCompFuente').textContent = val(p.comprador_fuente);
     document.getElementById('pTipoTx').textContent = val(p.tipo_transaccion);
@@ -402,6 +411,8 @@
     document.getElementById('fPropTelefono').value = p.propietario_telefono || '';
     document.getElementById('fPropFuente').value = p.propietario_fuente || '';
     document.getElementById('fCompNombre').value = p.comprador_nombre || '';
+    document.getElementById('fCompDocTipo').value = p.comprador_doc_tipo || '';
+    document.getElementById('fCompDocNumero').value = p.comprador_doc_numero || '';
     document.getElementById('fCompTelefono').value = p.comprador_telefono || '';
     document.getElementById('fCompFuente').value = p.comprador_fuente || '';
     document.getElementById('fTipoTx').value = p.tipo_transaccion || 'Venta';
@@ -484,6 +495,8 @@
           propietarioTelefono: document.getElementById('fPropTelefono').value || null,
           propietarioFuente: document.getElementById('fPropFuente').value || null,
           compradorNombre: document.getElementById('fCompNombre').value || null,
+          compradorDocTipo: document.getElementById('fCompDocTipo').value || null,
+          compradorDocNumero: document.getElementById('fCompDocNumero').value || null,
           compradorTelefono: document.getElementById('fCompTelefono').value || null,
           compradorFuente: document.getElementById('fCompFuente').value || null,
           tipoTransaccion: document.getElementById('fTipoTx').value,
