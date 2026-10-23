@@ -17,7 +17,7 @@
      proforma (recién guardada o de la lista) antes de imprimir o
      de generar el PDF para compartir por WhatsApp. */
   #printArea{ display:none; }
-  #printArea .p-logo{ display:block; width:100%; max-height:120px; object-fit:cover; border-radius:8px; }
+  #printArea .p-logo{ display:block; max-width:260px; width:100%; height:auto; margin:0 auto; border-radius:8px; }
   #printArea .p-title{ font-family:var(--font-display); text-align:center; margin:14px 0 2px; font-size:20px; letter-spacing:.04em; color:#0b2924; }
   #printArea .p-subtitle{ text-align:center; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#a67c37; margin-bottom:18px; }
   #printArea .p-section{ margin-bottom:14px; }
@@ -30,10 +30,13 @@
   @media print{
     @page{ size:A4; margin:16mm 14mm; }
     *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    body{ background:#fff !important; }
-    .sidebar, .topbar, .no-print, main > *:not(#printArea){ display:none !important; }
+    body{ background:#fff !important; margin:0 !important; }
+    /* .app tiene min-height:100vh propio — si solo se ocultan sus hijos
+       (sidebar/topbar/main) esa altura reservada queda como una primera
+       hoja en blanco antes de #printArea. Hay que sacar a .app del flujo
+       por completo, no solo vaciarlo. */
+    .sidebar-backdrop, .app{ display:none !important; }
     #printArea{ display:block !important; }
-    .content{ margin:0 !important; padding:0 !important; }
   }
 </style>
 </head>
