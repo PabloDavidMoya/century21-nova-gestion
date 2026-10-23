@@ -89,7 +89,7 @@
 
       <div class="grid grid-2" style="gap:20px;align-items:start">
         <div class="card">
-          <div class="card-title" style="margin-bottom:16px">Nueva proforma</div>
+          <div class="card-title" id="formTitle" style="margin-bottom:16px">Nueva proforma</div>
           <form id="proformaForm" style="display:flex;flex-direction:column;gap:14px">
             <div class="grid grid-2" style="gap:14px">
               <div class="field"><label>Asesor</label><select id="fAsesor"><option value="">— ninguno de la oficina —</option></select></div>
@@ -168,7 +168,10 @@
             </div>
             <div class="field"><label>Observaciones (opcional)</label><textarea id="fObs"></textarea></div>
 
-            <button type="submit" class="btn primary" style="padding:11px">Guardar proforma</button>
+            <div class="row gap-2">
+              <button type="submit" class="btn primary" id="btnGuardar" style="padding:11px;flex:1">Guardar proforma</button>
+              <button type="button" class="btn ghost" id="btnCancelarEdicion" style="display:none;padding:11px">Cancelar</button>
+            </div>
             <div class="api-error" id="formError"></div>
             <div class="api-ok" id="formOk">Proforma guardada ✓</div>
           </form>
@@ -303,6 +306,7 @@
         '<div class="sub">' + (p.asesor_nombre_real || p.asesor_nombre || 'Sin asesor') + (p.tipo_transaccion ? ' · ' + p.tipo_transaccion : '') +
         (p.precio_cierre_usd ? ' · ' + fmtUSD(p.precio_cierre_usd) : '') + '</div>' +
         '<div class="row gap-2" style="margin-top:6px;flex-wrap:wrap">' +
+        '<button class="btn ghost sm" data-editar="' + p.id + '">Editar</button>' +
         '<button class="btn ghost sm" data-imprimir="' + p.id + '">Imprimir / PDF</button>' +
         '<button class="btn ghost sm" data-whatsapp="' + p.id + '">Compartir WhatsApp</button>' +
         (p.estado === 'Pendiente' ? '<button class="btn ghost sm" data-marcar="' + p.id + '">Marcar cerrada</button>' : '') +
@@ -380,10 +384,64 @@
     window.open('https://wa.me/?text=' + texto, '_blank');
   }
 
+  var EDITANDO_ID = null;
+
+  function cargarEnFormulario(p) {
+    EDITANDO_ID = p.id;
+    document.getElementById('formTitle').textContent = 'Editar proforma';
+    document.getElementById('btnGuardar').textContent = 'Guardar cambios';
+    document.getElementById('btnCancelarEdicion').style.display = '';
+
+    selAsesor.value = p.asesor_id || '';
+    document.getElementById('fTipoInmueble').value = p.tipo_inmueble || '';
+    document.getElementById('fDireccion').value = p.direccion || '';
+    document.getElementById('fBarrio').value = p.barrio || '';
+    document.getElementById('fCiudad').value = p.ciudad || '';
+    document.getElementById('fLado').value = p.lado || '';
+    document.getElementById('fPropNombre').value = p.propietario_nombre || '';
+    document.getElementById('fPropTelefono').value = p.propietario_telefono || '';
+    document.getElementById('fPropFuente').value = p.propietario_fuente || '';
+    document.getElementById('fCompNombre').value = p.comprador_nombre || '';
+    document.getElementById('fCompTelefono').value = p.comprador_telefono || '';
+    document.getElementById('fCompFuente').value = p.comprador_fuente || '';
+    document.getElementById('fTipoTx').value = p.tipo_transaccion || 'Venta';
+    document.getElementById('fFechaCierre').value = p.fecha_cierre ? p.fecha_cierre.slice(0, 10) : '';
+    document.getElementById('fObs').value = p.observaciones || '';
+
+    var esGsGuardada = p.moneda_original === 'Gs';
+    document.getElementById('fMoneda').value = esGsGuardada ? 'Gs' : 'USD';
+    document.getElementById('fTcWrap').style.display = esGsGuardada ? '' : 'none';
+    if (esGsGuardada && p.tipo_cambio) document.getElementById('fTc').value = p.tipo_cambio;
+    // Si se guardó en Gs, se reedita con el monto original en Gs; si no, con el USD.
+    document.getElementById('fPrecio').value = esGsGuardada ? (p.precio_cierre_original || '') : (p.precio_cierre_usd || '');
+    document.getElementById('fComisionMonto').value = esGsGuardada ? (p.comision_monto_original || '') : (p.comision_monto_usd || '');
+    document.getElementById('fComisionAgente').value = esGsGuardada ? (p.comision_agente_original || '') : (p.comision_agente_usd || '');
+    document.getElementById('fComisionOficina').value = esGsGuardada ? (p.comision_oficina_original || '') : (p.comision_oficina_usd || '');
+    actualizarPreviews();
+
+    document.getElementById('formError').style.display = 'none';
+    document.getElementById('formOk').style.display = 'none';
+    document.getElementById('proformaForm').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function salirModoEdicion() {
+    EDITANDO_ID = null;
+    document.getElementById('formTitle').textContent = 'Nueva proforma';
+    document.getElementById('btnGuardar').textContent = 'Guardar proforma';
+    document.getElementById('btnCancelarEdicion').style.display = 'none';
+    document.getElementById('proformaForm').reset();
+    document.getElementById('fTcWrap').style.display = 'none';
+    actualizarPreviews();
+  }
+
+  document.getElementById('btnCancelarEdicion').addEventListener('click', salirModoEdicion);
+
   document.getElementById('listaProformas').addEventListener('click', async function (e) {
+    var idEditar = e.target.dataset.editar;
     var idImprimir = e.target.dataset.imprimir;
     var idWhatsapp = e.target.dataset.whatsapp;
     var idMarcar = e.target.dataset.marcar;
+    if (idEditar) { cargarEnFormulario(PROFORMAS.find(function (p) { return p.id === idEditar; })); return; }
     if (idImprimir) { imprimirProforma(PROFORMAS.find(function (p) { return p.id === idImprimir; })); return; }
     if (idWhatsapp) { compartirWhatsApp(PROFORMAS.find(function (p) { return p.id === idWhatsapp; })); return; }
     if (idMarcar) {
@@ -410,9 +468,10 @@
     var moneda = document.getElementById('fMoneda').value;
     var tipoCambio = esGs() ? tc() : null;
 
+    var esEdicion = !!EDITANDO_ID;
     try {
-      var guardada = await C21Api.api('/api/proformas', {
-        method: 'POST',
+      var guardada = await C21Api.api(esEdicion ? '/api/proformas/' + EDITANDO_ID : '/api/proformas', {
+        method: esEdicion ? 'PATCH' : 'POST',
         body: JSON.stringify({
           asesorId: selAsesor.value || null,
           asesorNombre: selAsesor.value ? selAsesor.options[selAsesor.selectedIndex].textContent : null,
@@ -438,10 +497,10 @@
           observaciones: document.getElementById('fObs').value || null,
         }),
       });
+      okBox.textContent = esEdicion ? 'Proforma actualizada ✓' : 'Proforma guardada ✓';
       okBox.style.display = '';
-      e.target.reset();
-      document.getElementById('fTcWrap').style.display = 'none';
-      actualizarPreviews();
+      if (esEdicion) salirModoEdicion();
+      else { e.target.reset(); document.getElementById('fTcWrap').style.display = 'none'; actualizarPreviews(); }
       cargarLista();
     } catch (ex) {
       errBox.textContent = ex.message;

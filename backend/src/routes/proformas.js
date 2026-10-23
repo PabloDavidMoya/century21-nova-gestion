@@ -60,17 +60,66 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
+// Acepta tanto la actualización rápida de estado ("Marcar cerrada", que
+// manda solo { estado }) como la edición completa del formulario (manda
+// todos los campos) — lo que no venga en el body queda como estaba, vía
+// COALESCE.
 router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
-  const { estado, observaciones } = req.body;
+  const {
+    estado, asesorId, asesorNombre, tipoInmueble, direccion, barrio, ciudad, lado,
+    propietarioNombre, propietarioTelefono, propietarioFuente,
+    compradorNombre, compradorTelefono, compradorFuente,
+    tipoTransaccion, fechaCierre, monedaOriginal, tipoCambio,
+    precioCierreUsd, precioCierreOriginal,
+    comisionMontoUsd, comisionMontoOriginal,
+    comisionAgenteUsd, comisionAgenteOriginal,
+    comisionOficinaUsd, comisionOficinaOriginal,
+    observaciones,
+  } = req.body;
   if (estado && !['Pendiente', 'Cerrada'].includes(estado)) {
     return res.status(400).json({ error: 'Estado inválido' });
   }
   const { rows } = await pool.query(
     `UPDATE proformas SET
        estado = COALESCE($1, estado),
-       observaciones = COALESCE($2, observaciones)
-     WHERE id = $3 RETURNING *`,
-    [estado, observaciones, req.params.id]
+       asesor_id = COALESCE($2, asesor_id),
+       asesor_nombre = COALESCE($3, asesor_nombre),
+       tipo_inmueble = COALESCE($4, tipo_inmueble),
+       direccion = COALESCE($5, direccion),
+       barrio = COALESCE($6, barrio),
+       ciudad = COALESCE($7, ciudad),
+       lado = COALESCE($8, lado),
+       propietario_nombre = COALESCE($9, propietario_nombre),
+       propietario_telefono = COALESCE($10, propietario_telefono),
+       propietario_fuente = COALESCE($11, propietario_fuente),
+       comprador_nombre = COALESCE($12, comprador_nombre),
+       comprador_telefono = COALESCE($13, comprador_telefono),
+       comprador_fuente = COALESCE($14, comprador_fuente),
+       tipo_transaccion = COALESCE($15, tipo_transaccion),
+       fecha_cierre = COALESCE($16, fecha_cierre),
+       moneda_original = COALESCE($17, moneda_original),
+       tipo_cambio = COALESCE($18, tipo_cambio),
+       precio_cierre_usd = COALESCE($19, precio_cierre_usd),
+       precio_cierre_original = COALESCE($20, precio_cierre_original),
+       comision_monto_usd = COALESCE($21, comision_monto_usd),
+       comision_monto_original = COALESCE($22, comision_monto_original),
+       comision_agente_usd = COALESCE($23, comision_agente_usd),
+       comision_agente_original = COALESCE($24, comision_agente_original),
+       comision_oficina_usd = COALESCE($25, comision_oficina_usd),
+       comision_oficina_original = COALESCE($26, comision_oficina_original),
+       observaciones = COALESCE($27, observaciones)
+     WHERE id = $28 RETURNING *`,
+    [
+      estado || null, asesorId || null, asesorNombre || null, tipoInmueble || null, direccion || null, barrio || null, ciudad || null, lado || null,
+      propietarioNombre || null, propietarioTelefono || null, propietarioFuente || null,
+      compradorNombre || null, compradorTelefono || null, compradorFuente || null,
+      tipoTransaccion || null, fechaCierre || null, monedaOriginal || null, tipoCambio || null,
+      precioCierreUsd || null, precioCierreOriginal || null,
+      comisionMontoUsd || null, comisionMontoOriginal || null,
+      comisionAgenteUsd || null, comisionAgenteOriginal || null,
+      comisionOficinaUsd || null, comisionOficinaOriginal || null,
+      observaciones || null, req.params.id,
+    ]
   );
   if (!rows[0]) return res.status(404).json({ error: 'Proforma no encontrada' });
   res.json(rows[0]);
