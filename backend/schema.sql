@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- para gen_random_uuid()
 -- prototipo (datos de prueba, se recargan con "npm run seed"). Antes de que
 -- haya datos reales cargados a mano en el panel, cambiar esto por
 -- migraciones incrementales (ALTER TABLE) que no pierdan información.
-DROP TABLE IF EXISTS reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
+DROP TABLE IF EXISTS proformas, reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
 
 CREATE TABLE asesores (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -132,3 +132,36 @@ CREATE TABLE reservas (
   created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_reservas_fecha ON reservas (fecha);
+
+-- Proforma para cierre: el formulario interno que arma Administración con
+-- todos los datos de la operación (propietario, comprador/inquilino,
+-- precio y comisión) antes o al momento de cerrar. Queda como documento
+-- imprimible/compartible y como registro histórico; no se inserta solo
+-- en "cierres" (eso lo sigue haciendo Administración a mano en Cargar cierre).
+CREATE TABLE proformas (
+  id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  asesor_id            UUID REFERENCES asesores(id),
+  asesor_nombre        TEXT,
+  tipo_inmueble        TEXT,
+  direccion            TEXT,
+  barrio               TEXT,
+  ciudad               TEXT,
+  lado                 TEXT CHECK (lado IN ('Ambas puntas', 'Captación', 'Colocación', 'Capta/Coloca')),
+  propietario_nombre   TEXT,
+  propietario_telefono TEXT,
+  propietario_fuente   TEXT,
+  comprador_nombre     TEXT,
+  comprador_telefono   TEXT,
+  comprador_fuente     TEXT,
+  tipo_transaccion     TEXT CHECK (tipo_transaccion IN ('Venta', 'Alquiler')),
+  fecha_cierre         DATE,
+  precio_cierre_usd    NUMERIC(14,2),
+  comision_monto_usd   NUMERIC(14,2),
+  comision_agente_usd  NUMERIC(14,2),
+  comision_oficina_usd NUMERIC(14,2),
+  estado               TEXT NOT NULL DEFAULT 'Pendiente' CHECK (estado IN ('Pendiente', 'Cerrada')),
+  observaciones        TEXT,
+  cargado_por          UUID REFERENCES usuarios(id),
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_proformas_fecha ON proformas (fecha_cierre);

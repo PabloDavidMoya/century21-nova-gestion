@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proforma para cierre · Century 21 Nova</title>
+<script>(function(){try{var t=localStorage.getItem('c21-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<link rel="stylesheet" href="../assets/css/tokens.css">
+<link rel="stylesheet" href="../assets/css/base.css">
+<link rel="stylesheet" href="../assets/css/components.css">
+<style>
+  .api-error{color:var(--danger);font-size:.82rem;margin-top:6px;display:none}
+  .api-ok{color:var(--ok);font-size:.82rem;margin-top:6px;display:none}
+
+  /* ================= Documento imprimible / PDF =================
+     En pantalla queda oculto; se completa con los datos de una
+     proforma (recién guardada o de la lista) antes de imprimir o
+     de generar el PDF para compartir por WhatsApp. */
+  #printArea{ display:none; }
+  #printArea .p-logo{ display:block; width:100%; max-height:120px; object-fit:cover; border-radius:8px; }
+  #printArea .p-title{ font-family:var(--font-display); text-align:center; margin:14px 0 2px; font-size:20px; letter-spacing:.04em; color:#0b2924; }
+  #printArea .p-subtitle{ text-align:center; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:#a67c37; margin-bottom:18px; }
+  #printArea .p-section{ margin-bottom:14px; }
+  #printArea .p-section h3{ font-family:var(--font-display); font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:#a67c37; border-bottom:1.5px solid #d4af37; padding-bottom:4px; margin-bottom:8px; }
+  #printArea table{ width:100%; border-collapse:collapse; }
+  #printArea td{ font-size:12px; color:#1c1c1c; padding:4px 6px; vertical-align:top; }
+  #printArea td.p-label{ width:42%; color:#6c4e24; font-weight:600; }
+  #printArea .p-foot{ margin-top:20px; padding-top:8px; border-top:1px solid #e2d9c3; font-size:9.5px; color:#777; text-align:center; }
+
+  @media print{
+    @page{ size:A4; margin:16mm 14mm; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body{ background:#fff !important; }
+    .sidebar, .topbar, .no-print, main > *:not(#printArea){ display:none !important; }
+    #printArea{ display:block !important; }
+    .content{ margin:0 !important; padding:0 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="sidebar-backdrop"></div>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo"><div class="mark">C21</div><div class="name">NOVA<small>Panel administración</small></div></div>
+    <nav class="nav-group">
+      <div class="label">General</div>
+      <a class="nav-link" href="dashboard.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Dashboard</a>
+      <a class="nav-link" href="asesores.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Asesores</a>
+      <a class="nav-link" href="metas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Metas y proyecciones</a>
+      <a class="nav-link" href="desafios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Desafíos</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="label">Operación</div>
+      <a class="nav-link" href="cierres.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>Cargar cierre</a>
+      <a class="nav-link" href="reservas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 16h5"/></svg>Reservas</a>
+      <a class="nav-link active" href="proformas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/></svg>Proforma de cierre</a>
+      <a class="nav-link" href="calendario.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
+      <a class="nav-link" href="finanzas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Finanzas</a>
+      <a class="nav-link" href="tasacion.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Tasación ACM</a>
+      <a class="nav-link" href="informes.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="13" y="8" width="3" height="10"/></svg>Informes</a>
+    </nav>
+    <nav class="nav-group">
+      <div class="label">Cuenta</div>
+      <a class="nav-link" href="usuarios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>Usuarios y accesos</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sidebar-user"><div class="av">D</div><div class="who"><b>Dueña / Admin</b><span>Acceso completo</span></div></div>
+      <a href="#" class="logout-link" data-logout data-depth="1"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>Cerrar sesión</a>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <div class="row gap-2">
+        <button class="menu-btn" data-menu-toggle aria-label="Abrir menú"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+        <h1>Proforma de cierre</h1>
+      </div>
+      <button class="theme-toggle" data-theme-toggle aria-label="Cambiar tema">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </header>
+
+    <main class="main">
+      <p class="sub" style="margin-bottom:18px">Formulario interno con todos los datos de la operación (propietario, comprador/inquilino, precio y comisión). Queda guardado como historial y se puede imprimir o compartir por WhatsApp en PDF.</p>
+
+      <div class="grid grid-2" style="gap:20px;align-items:start">
+        <div class="card">
+          <div class="card-title" style="margin-bottom:16px">Nueva proforma</div>
+          <form id="proformaForm" style="display:flex;flex-direction:column;gap:14px">
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Asesor</label><select id="fAsesor"><option value="">— ninguno de la oficina —</option></select></div>
+              <div class="field"><label>Tipo de inmueble</label><input type="text" id="fTipoInmueble" placeholder="ej: Casa, Depto, Terreno"></div>
+            </div>
+            <div class="field"><label>Dirección</label><input type="text" id="fDireccion" required></div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Barrio</label><input type="text" id="fBarrio"></div>
+              <div class="field"><label>Ciudad</label><input type="text" id="fCiudad"></div>
+            </div>
+            <div class="field"><label>Lado</label>
+              <select id="fLado">
+                <option value="">— seleccionar —</option>
+                <option value="Captación">Captación</option>
+                <option value="Colocación">Colocación</option>
+                <option value="Ambas puntas">Ambas puntas</option>
+                <option value="Capta/Coloca">Capta/Coloca</option>
+              </select>
+            </div>
+
+            <div class="card-title" style="font-size:.85rem;margin-top:4px">Propietario</div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Nombre</label><input type="text" id="fPropNombre"></div>
+              <div class="field"><label>Teléfono</label><input type="text" id="fPropTelefono"></div>
+            </div>
+            <div class="field"><label>Fuente del propietario</label><input type="text" id="fPropFuente" placeholder="ej: Referido, Portal, Captación directa"></div>
+
+            <div class="card-title" style="font-size:.85rem;margin-top:4px">Comprador / inquilino</div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Nombre</label><input type="text" id="fCompNombre"></div>
+              <div class="field"><label>Teléfono</label><input type="text" id="fCompTelefono"></div>
+            </div>
+            <div class="field"><label>Fuente del comprador/inquilino</label><input type="text" id="fCompFuente" placeholder="ej: Portal, Cartel, Referido"></div>
+
+            <div class="card-title" style="font-size:.85rem;margin-top:4px">Cierre</div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Tipo de transacción</label>
+                <select id="fTipoTx"><option value="Venta">Venta</option><option value="Alquiler">Alquiler</option></select>
+              </div>
+              <div class="field"><label>Fecha de cierre</label><input type="date" id="fFechaCierre"></div>
+            </div>
+            <div class="field"><label>Precio de cierre (USD)</label><input type="number" id="fPrecio" step="0.01"></div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Monto de comisión (USD)</label><input type="number" id="fComisionMonto" step="0.01"></div>
+              <div class="field"><label>Compartida con el agente (USD)</label><input type="number" id="fComisionAgente" step="0.01"></div>
+            </div>
+            <div class="field"><label>Compartida con la oficina (USD)</label><input type="number" id="fComisionOficina" step="0.01"></div>
+            <div class="field"><label>Observaciones (opcional)</label><textarea id="fObs"></textarea></div>
+
+            <button type="submit" class="btn primary" style="padding:11px">Guardar proforma</button>
+            <div class="api-error" id="formError"></div>
+            <div class="api-ok" id="formOk">Proforma guardada ✓</div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-title" style="margin-bottom:14px">Proformas guardadas</div>
+          <div id="listaProformas" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Documento imprimible / PDF — oculto en pantalla, se arma antes de imprimir o compartir -->
+<div id="printArea">
+  <img class="p-logo" src="../assets/img/nova_fondo.png" alt="Century 21 Nova">
+  <div class="p-title">Proforma para Cierre</div>
+  <div class="p-subtitle" id="pFecha">—</div>
+
+  <div class="p-section">
+    <h3>Operación</h3>
+    <table>
+      <tr><td class="p-label">Asesor</td><td id="pAsesor">—</td></tr>
+      <tr><td class="p-label">Tipo de inmueble</td><td id="pTipoInmueble">—</td></tr>
+      <tr><td class="p-label">Dirección</td><td id="pDireccion">—</td></tr>
+      <tr><td class="p-label">Barrio</td><td id="pBarrio">—</td></tr>
+      <tr><td class="p-label">Ciudad</td><td id="pCiudad">—</td></tr>
+      <tr><td class="p-label">Lado</td><td id="pLado">—</td></tr>
+    </table>
+  </div>
+
+  <div class="p-section">
+    <h3>Propietario</h3>
+    <table>
+      <tr><td class="p-label">Nombre</td><td id="pPropNombre">—</td></tr>
+      <tr><td class="p-label">Teléfono</td><td id="pPropTelefono">—</td></tr>
+      <tr><td class="p-label">Fuente</td><td id="pPropFuente">—</td></tr>
+    </table>
+  </div>
+
+  <div class="p-section">
+    <h3>Comprador / Inquilino</h3>
+    <table>
+      <tr><td class="p-label">Nombre</td><td id="pCompNombre">—</td></tr>
+      <tr><td class="p-label">Teléfono</td><td id="pCompTelefono">—</td></tr>
+      <tr><td class="p-label">Fuente</td><td id="pCompFuente">—</td></tr>
+    </table>
+  </div>
+
+  <div class="p-section">
+    <h3>Cierre</h3>
+    <table>
+      <tr><td class="p-label">Tipo de transacción</td><td id="pTipoTx">—</td></tr>
+      <tr><td class="p-label">Fecha de cierre</td><td id="pFechaCierre">—</td></tr>
+      <tr><td class="p-label">Precio de cierre</td><td id="pPrecio">—</td></tr>
+      <tr><td class="p-label">Monto de comisión</td><td id="pComisionMonto">—</td></tr>
+      <tr><td class="p-label">Compartida con el agente</td><td id="pComisionAgente">—</td></tr>
+      <tr><td class="p-label">Compartida con la oficina</td><td id="pComisionOficina">—</td></tr>
+    </table>
+  </div>
+
+  <div class="p-section" id="pObsWrap" style="display:none">
+    <h3>Observaciones</h3>
+    <table><tr><td id="pObs">—</td></tr></table>
+  </div>
+
+  <div class="p-foot">Documento interno de uso administrativo — Century 21 Nova Paraguay. No constituye factura ni contrato.</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="../assets/js/theme.js"></script>
+<script src="../assets/js/api.js"></script>
+<script src="../assets/js/guard.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+  var selAsesor = document.getElementById('fAsesor');
+
+  function fmtUSD(n) { return n == null ? '—' : '$ ' + Number(n).toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function fmtFecha(d) { return d ? new Date(d).toLocaleDateString('es-PY') : '—'; }
+  function val(v) { return (v === null || v === undefined || v === '') ? '—' : v; }
+
+  async function cargarAsesoresEnSelect() {
+    var asesores = await C21Api.api('/api/asesores');
+    asesores.sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+    asesores.forEach(function (a) {
+      var o = document.createElement('option'); o.value = a.id; o.textContent = a.nombre; selAsesor.appendChild(o);
+    });
+  }
+
+  var estadoBadge = { Pendiente: 'gold-lvl', Cerrada: 'green' };
+  var PROFORMAS = [];
+
+  async function cargarLista() {
+    PROFORMAS = await C21Api.api('/api/proformas');
+    var box = document.getElementById('listaProformas');
+    box.innerHTML = '';
+    if (!PROFORMAS.length) { box.innerHTML = '<p class="sub">Todavía no hay proformas cargadas.</p>'; return; }
+    PROFORMAS.forEach(function (p) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + (p.direccion || 'Sin dirección') + '</b>' +
+        '<span class="badge ' + (estadoBadge[p.estado] || 'bronze') + '">' + p.estado + '</span></div>' +
+        '<div class="sub">' + (p.asesor_nombre_real || p.asesor_nombre || 'Sin asesor') + (p.tipo_transaccion ? ' · ' + p.tipo_transaccion : '') +
+        (p.precio_cierre_usd ? ' · ' + fmtUSD(p.precio_cierre_usd) : '') + '</div>' +
+        '<div class="row gap-2" style="margin-top:6px;flex-wrap:wrap">' +
+        '<button class="btn ghost sm" data-imprimir="' + p.id + '">Imprimir / PDF</button>' +
+        '<button class="btn ghost sm" data-whatsapp="' + p.id + '">Compartir WhatsApp</button>' +
+        (p.estado === 'Pendiente' ? '<button class="btn ghost sm" data-marcar="' + p.id + '">Marcar cerrada</button>' : '') +
+        '</div>';
+      box.appendChild(row);
+    });
+  }
+
+  function fillPrintArea(p) {
+    document.getElementById('pFecha').textContent = 'Emitido el ' + new Date().toLocaleDateString('es-PY');
+    document.getElementById('pAsesor').textContent = val(p.asesor_nombre_real || p.asesor_nombre);
+    document.getElementById('pTipoInmueble').textContent = val(p.tipo_inmueble);
+    document.getElementById('pDireccion').textContent = val(p.direccion);
+    document.getElementById('pBarrio').textContent = val(p.barrio);
+    document.getElementById('pCiudad').textContent = val(p.ciudad);
+    document.getElementById('pLado').textContent = val(p.lado);
+    document.getElementById('pPropNombre').textContent = val(p.propietario_nombre);
+    document.getElementById('pPropTelefono').textContent = val(p.propietario_telefono);
+    document.getElementById('pPropFuente').textContent = val(p.propietario_fuente);
+    document.getElementById('pCompNombre').textContent = val(p.comprador_nombre);
+    document.getElementById('pCompTelefono').textContent = val(p.comprador_telefono);
+    document.getElementById('pCompFuente').textContent = val(p.comprador_fuente);
+    document.getElementById('pTipoTx').textContent = val(p.tipo_transaccion);
+    document.getElementById('pFechaCierre').textContent = fmtFecha(p.fecha_cierre);
+    document.getElementById('pPrecio').textContent = fmtUSD(p.precio_cierre_usd);
+    document.getElementById('pComisionMonto').textContent = fmtUSD(p.comision_monto_usd);
+    document.getElementById('pComisionAgente').textContent = fmtUSD(p.comision_agente_usd);
+    document.getElementById('pComisionOficina').textContent = fmtUSD(p.comision_oficina_usd);
+    var obsWrap = document.getElementById('pObsWrap');
+    if (p.observaciones) { obsWrap.style.display = ''; document.getElementById('pObs').textContent = p.observaciones; }
+    else { obsWrap.style.display = 'none'; }
+  }
+
+  function nombreArchivo(p) {
+    return 'Proforma_' + (p.direccion || 'cierre').replace(/[^a-zA-Z0-9]+/g, '_') + '.pdf';
+  }
+
+  function imprimirProforma(p) {
+    fillPrintArea(p);
+    window.print();
+  }
+
+  async function compartirWhatsApp(p) {
+    fillPrintArea(p);
+    var el = document.getElementById('printArea');
+    el.style.display = 'block'; // html2canvas necesita que esté renderizado, aunque sea fuera de pantalla
+    var opt = {
+      margin: 10,
+      filename: nombreArchivo(p),
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    };
+    try {
+      var blob = await html2pdf().set(opt).from(el).outputPdf('blob');
+      var file = new File([blob], opt.filename, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Proforma Century 21 Nova', text: 'Proforma para cierre — ' + (p.direccion || '') });
+        el.style.display = 'none';
+        return;
+      }
+    } catch (e) { /* si falla el share nativo, sigue al descargable + WhatsApp Web */ }
+
+    await html2pdf().set(opt).from(el).save();
+    el.style.display = 'none';
+    var texto = encodeURIComponent('Proforma para cierre — ' + (p.direccion || '') + '. Te comparto el PDF que se acaba de descargar.');
+    window.open('https://wa.me/?text=' + texto, '_blank');
+  }
+
+  document.getElementById('listaProformas').addEventListener('click', async function (e) {
+    var idImprimir = e.target.dataset.imprimir;
+    var idWhatsapp = e.target.dataset.whatsapp;
+    var idMarcar = e.target.dataset.marcar;
+    if (idImprimir) { imprimirProforma(PROFORMAS.find(function (p) { return p.id === idImprimir; })); return; }
+    if (idWhatsapp) { compartirWhatsApp(PROFORMAS.find(function (p) { return p.id === idWhatsapp; })); return; }
+    if (idMarcar) {
+      await C21Api.api('/api/proformas/' + idMarcar, { method: 'PATCH', body: JSON.stringify({ estado: 'Cerrada' }) });
+      cargarLista();
+    }
+  });
+
+  var USUARIO = C21Guard.requireRole(['broker'], 1);
+  if (USUARIO) {
+    cargarAsesoresEnSelect();
+    cargarLista();
+  }
+
+  document.getElementById('proformaForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('formError'), okBox = document.getElementById('formOk');
+    errBox.style.display = 'none'; okBox.style.display = 'none';
+
+    try {
+      var guardada = await C21Api.api('/api/proformas', {
+        method: 'POST',
+        body: JSON.stringify({
+          asesorId: selAsesor.value || null,
+          asesorNombre: selAsesor.value ? selAsesor.options[selAsesor.selectedIndex].textContent : null,
+          tipoInmueble: document.getElementById('fTipoInmueble').value || null,
+          direccion: document.getElementById('fDireccion').value,
+          barrio: document.getElementById('fBarrio').value || null,
+          ciudad: document.getElementById('fCiudad').value || null,
+          lado: document.getElementById('fLado').value || null,
+          propietarioNombre: document.getElementById('fPropNombre').value || null,
+          propietarioTelefono: document.getElementById('fPropTelefono').value || null,
+          propietarioFuente: document.getElementById('fPropFuente').value || null,
+          compradorNombre: document.getElementById('fCompNombre').value || null,
+          compradorTelefono: document.getElementById('fCompTelefono').value || null,
+          compradorFuente: document.getElementById('fCompFuente').value || null,
+          tipoTransaccion: document.getElementById('fTipoTx').value,
+          fechaCierre: document.getElementById('fFechaCierre').value || null,
+          precioCierreUsd: parseFloat(document.getElementById('fPrecio').value) || null,
+          comisionMontoUsd: parseFloat(document.getElementById('fComisionMonto').value) || null,
+          comisionAgenteUsd: parseFloat(document.getElementById('fComisionAgente').value) || null,
+          comisionOficinaUsd: parseFloat(document.getElementById('fComisionOficina').value) || null,
+          observaciones: document.getElementById('fObs').value || null,
+        }),
+      });
+      okBox.style.display = '';
+      e.target.reset();
+      cargarLista();
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+</script>
+</body>
+</html>

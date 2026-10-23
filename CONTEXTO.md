@@ -1,7 +1,50 @@
 # Contexto del proyecto — Century 21 Nova · Plataforma de gestión
 
-Última actualización: 2026-10-22 (Informes con datos reales en vivo +
-filtro de fecha/tipo en el generador de reportes).
+Última actualización: 2026-10-23 (Nuevo módulo Proforma de cierre).
+
+## Sesión 2026-10-23: Proforma de cierre (nuevo módulo)
+
+Pablo pidió una "proforma pero en el sistema" — resultó ser el formulario
+interno que ya usan en papel/Excel antes de cerrar una operación:
+datos del asesor, del inmueble, del propietario y del comprador/inquilino,
+y el desglose de precio y comisión. Se armó como módulo nuevo, calcado del
+patrón de Reservas (tabla propia + ruta CRUD + página con form + listado).
+
+Hecho:
+- **Tabla `proformas`** (`backend/schema.sql` + `backend/migrations/005_proformas.sql`,
+  migración incremental — no se corrió `npm run migrate` contra la base real).
+  Guarda asesor, tipo de inmueble, dirección/barrio/ciudad, lado (mismo enum
+  que `cierres.lados_tipo`), datos de propietario y comprador/inquilino
+  (nombre/teléfono/fuente de cada uno), tipo de transacción, fecha y precio
+  de cierre, y el desglose de comisión (monto total, parte del agente, parte
+  de la oficina). Estado simple `Pendiente`/`Cerrada`. **No inserta
+  automáticamente en `cierres`** — sigue siendo Administración quien carga
+  el cierre real en "Cargar cierre"; la proforma es el documento de trabajo
+  previo, no reemplaza el ledger.
+- **`backend/src/routes/proformas.js`**: GET/POST/PATCH/DELETE, con
+  `requireBroker` en los cuatro (mismo nivel de acceso que Reservas —
+  gerente/administración ya tienen su barra lateral limitada solo a
+  Finanzas por diseño de `guard.js`, así que se mantuvo consistente en vez
+  de abrirlo a todo el staff). Registrada en `server.js`.
+- **`admin/proformas.html`**: formulario completo + listado de proformas
+  guardadas, con botones "Imprimir / PDF" y "Compartir WhatsApp" por fila.
+  El documento imprimible lleva el logo de C21 Nova (`assets/img/nova_fondo.png`
+  como membrete) y queda oculto en pantalla (`#printArea`, solo visible por
+  `@media print` o al generar el PDF).
+  - Imprimir usa `window.print()` con CSS de impresión dedicado (mismo
+    patrón que `tasacion-app.html`).
+  - Compartir por WhatsApp genera un PDF real en el navegador con
+    `html2pdf.js` (CDN, cdnjs) y usa `navigator.share()` con el archivo
+    adjunto cuando el navegador lo soporta (Android/Chrome); si no, descarga
+    el PDF y abre `wa.me` con un texto, para adjuntarlo a mano.
+- Se agregó el link "Proforma de cierre" a la barra lateral de las demás
+  11 páginas de `admin/` (entre Reservas y Calendario), para que quede
+  navegable desde cualquier pantalla del panel.
+
+Pendiente para una sesión futura (no pedido todavía, anotado para no
+perderlo): botón "Convertir a cierre" que precargue el formulario de
+"Cargar cierre" con los datos de la proforma aprobada, para no tipear dos
+veces.
 
 ## Sesión 2026-10-22: Informes conectado a la base real
 
