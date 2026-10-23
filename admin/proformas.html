@@ -90,7 +90,14 @@
           <form id="proformaForm" style="display:flex;flex-direction:column;gap:14px">
             <div class="grid grid-2" style="gap:14px">
               <div class="field"><label>Asesor</label><select id="fAsesor"><option value="">— ninguno de la oficina —</option></select></div>
-              <div class="field"><label>Tipo de inmueble</label><input type="text" id="fTipoInmueble" placeholder="ej: Casa, Depto, Terreno"></div>
+              <div class="field"><label>Tipo de inmueble</label>
+                <select id="fTipoInmueble">
+                  <option value="">—</option>
+                  <option>Casa</option><option>Departamento</option><option>Duplex</option>
+                  <option>Terreno habitacional</option><option>Quinta</option><option>Local / Comercial</option>
+                  <option>Casa en condominio</option>
+                </select>
+              </div>
             </div>
             <div class="field"><label>Dirección</label><input type="text" id="fDireccion" required></div>
             <div class="grid grid-2" style="gap:14px">
@@ -128,12 +135,34 @@
               </div>
               <div class="field"><label>Fecha de cierre</label><input type="date" id="fFechaCierre"></div>
             </div>
-            <div class="field"><label>Precio de cierre (USD)</label><input type="number" id="fPrecio" step="0.01"></div>
             <div class="grid grid-2" style="gap:14px">
-              <div class="field"><label>Monto de comisión (USD)</label><input type="number" id="fComisionMonto" step="0.01"></div>
-              <div class="field"><label>Compartida con el agente (USD)</label><input type="number" id="fComisionAgente" step="0.01"></div>
+              <div class="field"><label>Moneda</label>
+                <select id="fMoneda"><option value="USD">USD</option><option value="Gs">Guaraníes</option></select>
+              </div>
+              <div class="field" id="fTcWrap" style="display:none"><label>Tipo de cambio (Gs por USD)</label><input type="number" id="fTc" value="7300"></div>
             </div>
-            <div class="field"><label>Compartida con la oficina (USD)</label><input type="number" id="fComisionOficina" step="0.01"></div>
+            <div class="field">
+              <label>Precio de cierre (en la moneda elegida)</label>
+              <input type="number" id="fPrecio" step="0.01">
+              <span class="sub" id="fPrecioPreview"></span>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field">
+                <label>Monto de comisión</label>
+                <input type="number" id="fComisionMonto" step="0.01">
+                <span class="sub" id="fComisionMontoPreview"></span>
+              </div>
+              <div class="field">
+                <label>Compartida con el agente</label>
+                <input type="number" id="fComisionAgente" step="0.01">
+                <span class="sub" id="fComisionAgentePreview"></span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Compartida con la oficina</label>
+              <input type="number" id="fComisionOficina" step="0.01">
+              <span class="sub" id="fComisionOficinaPreview"></span>
+            </div>
             <div class="field"><label>Observaciones (opcional)</label><textarea id="fObs"></textarea></div>
 
             <button type="submit" class="btn primary" style="padding:11px">Guardar proforma</button>
@@ -196,6 +225,7 @@
       <tr><td class="p-label">Monto de comisión</td><td id="pComisionMonto">—</td></tr>
       <tr><td class="p-label">Compartida con el agente</td><td id="pComisionAgente">—</td></tr>
       <tr><td class="p-label">Compartida con la oficina</td><td id="pComisionOficina">—</td></tr>
+      <tr id="pTcRow" style="display:none"><td class="p-label">Tipo de cambio utilizado</td><td id="pTc">—</td></tr>
     </table>
   </div>
 
@@ -216,7 +246,33 @@
   var selAsesor = document.getElementById('fAsesor');
 
   function fmtUSD(n) { return n == null ? '—' : '$ ' + Number(n).toLocaleString('es-PY', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
+  function fmtGs(n) { return n == null ? '—' : 'Gs ' + Math.round(Number(n)).toLocaleString('es-PY'); }
   function fmtFecha(d) { return d ? new Date(d).toLocaleDateString('es-PY') : '—'; }
+
+  /* Moneda/tipo de cambio: un único selector para toda la proforma (igual
+     que en Cargar cierre y Reservas) — los 4 montos se cargan en la moneda
+     elegida y se convierten a USD para guardar, pero se conserva el monto
+     y la moneda originales para que el documento impreso sea fiel a lo
+     que se tipeó. */
+  function tc() { return parseFloat(document.getElementById('fTc').value) || 7300; }
+  function esGs() { return document.getElementById('fMoneda').value === 'Gs'; }
+  function aUsd(monto) { return monto ? Math.round((esGs() ? monto / tc() : monto) * 100) / 100 : null; }
+
+  function actualizarPreviews() {
+    [['fPrecio', 'fPrecioPreview'], ['fComisionMonto', 'fComisionMontoPreview'], ['fComisionAgente', 'fComisionAgentePreview'], ['fComisionOficina', 'fComisionOficinaPreview']].forEach(function (pair) {
+      var monto = parseFloat(document.getElementById(pair[0]).value) || 0;
+      var preview = document.getElementById(pair[1]);
+      preview.textContent = monto && esGs() ? '≈ ' + fmtUSD(aUsd(monto)) : '';
+    });
+  }
+  document.getElementById('fMoneda').addEventListener('change', function () {
+    document.getElementById('fTcWrap').style.display = esGs() ? '' : 'none';
+    actualizarPreviews();
+  });
+  document.getElementById('fTc').addEventListener('input', actualizarPreviews);
+  ['fPrecio', 'fComisionMonto', 'fComisionAgente', 'fComisionOficina'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', actualizarPreviews);
+  });
   function val(v) { return (v === null || v === undefined || v === '') ? '—' : v; }
 
   async function cargarAsesoresEnSelect() {
@@ -268,10 +324,18 @@
     document.getElementById('pCompFuente').textContent = val(p.comprador_fuente);
     document.getElementById('pTipoTx').textContent = val(p.tipo_transaccion);
     document.getElementById('pFechaCierre').textContent = fmtFecha(p.fecha_cierre);
-    document.getElementById('pPrecio').textContent = fmtUSD(p.precio_cierre_usd);
-    document.getElementById('pComisionMonto').textContent = fmtUSD(p.comision_monto_usd);
-    document.getElementById('pComisionAgente').textContent = fmtUSD(p.comision_agente_usd);
-    document.getElementById('pComisionOficina').textContent = fmtUSD(p.comision_oficina_usd);
+    var esGsDoc = p.moneda_original === 'Gs';
+    function montoDoc(usd, original) {
+      if (usd == null) return '—';
+      return esGsDoc && original != null ? fmtUSD(usd) + ' (' + fmtGs(original) + ')' : fmtUSD(usd);
+    }
+    document.getElementById('pPrecio').textContent = montoDoc(p.precio_cierre_usd, p.precio_cierre_original);
+    document.getElementById('pComisionMonto').textContent = montoDoc(p.comision_monto_usd, p.comision_monto_original);
+    document.getElementById('pComisionAgente').textContent = montoDoc(p.comision_agente_usd, p.comision_agente_original);
+    document.getElementById('pComisionOficina').textContent = montoDoc(p.comision_oficina_usd, p.comision_oficina_original);
+    var pTcRow = document.getElementById('pTcRow');
+    if (esGsDoc && p.tipo_cambio) { pTcRow.style.display = ''; document.getElementById('pTc').textContent = 'Gs ' + Number(p.tipo_cambio).toLocaleString('es-PY') + ' por USD'; }
+    else { pTcRow.style.display = 'none'; }
     var obsWrap = document.getElementById('pObsWrap');
     if (p.observaciones) { obsWrap.style.display = ''; document.getElementById('pObs').textContent = p.observaciones; }
     else { obsWrap.style.display = 'none'; }
@@ -336,6 +400,13 @@
     var errBox = document.getElementById('formError'), okBox = document.getElementById('formOk');
     errBox.style.display = 'none'; okBox.style.display = 'none';
 
+    var precio = parseFloat(document.getElementById('fPrecio').value) || null;
+    var comMonto = parseFloat(document.getElementById('fComisionMonto').value) || null;
+    var comAgente = parseFloat(document.getElementById('fComisionAgente').value) || null;
+    var comOficina = parseFloat(document.getElementById('fComisionOficina').value) || null;
+    var moneda = document.getElementById('fMoneda').value;
+    var tipoCambio = esGs() ? tc() : null;
+
     try {
       var guardada = await C21Api.api('/api/proformas', {
         method: 'POST',
@@ -355,15 +426,19 @@
           compradorFuente: document.getElementById('fCompFuente').value || null,
           tipoTransaccion: document.getElementById('fTipoTx').value,
           fechaCierre: document.getElementById('fFechaCierre').value || null,
-          precioCierreUsd: parseFloat(document.getElementById('fPrecio').value) || null,
-          comisionMontoUsd: parseFloat(document.getElementById('fComisionMonto').value) || null,
-          comisionAgenteUsd: parseFloat(document.getElementById('fComisionAgente').value) || null,
-          comisionOficinaUsd: parseFloat(document.getElementById('fComisionOficina').value) || null,
+          monedaOriginal: moneda,
+          tipoCambio: tipoCambio,
+          precioCierreUsd: aUsd(precio), precioCierreOriginal: precio,
+          comisionMontoUsd: aUsd(comMonto), comisionMontoOriginal: comMonto,
+          comisionAgenteUsd: aUsd(comAgente), comisionAgenteOriginal: comAgente,
+          comisionOficinaUsd: aUsd(comOficina), comisionOficinaOriginal: comOficina,
           observaciones: document.getElementById('fObs').value || null,
         }),
       });
       okBox.style.display = '';
       e.target.reset();
+      document.getElementById('fTcWrap').style.display = 'none';
+      actualizarPreviews();
       cargarLista();
     } catch (ex) {
       errBox.textContent = ex.message;

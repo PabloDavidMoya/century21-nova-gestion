@@ -23,8 +23,12 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
     asesorId, asesorNombre, tipoInmueble, direccion, barrio, ciudad, lado,
     propietarioNombre, propietarioTelefono, propietarioFuente,
     compradorNombre, compradorTelefono, compradorFuente,
-    tipoTransaccion, fechaCierre, precioCierreUsd,
-    comisionMontoUsd, comisionAgenteUsd, comisionOficinaUsd, observaciones,
+    tipoTransaccion, fechaCierre, monedaOriginal, tipoCambio,
+    precioCierreUsd, precioCierreOriginal,
+    comisionMontoUsd, comisionMontoOriginal,
+    comisionAgenteUsd, comisionAgenteOriginal,
+    comisionOficinaUsd, comisionOficinaOriginal,
+    observaciones,
   } = req.body;
 
   if (!direccion) return res.status(400).json({ error: 'Falta la dirección del inmueble' });
@@ -34,15 +38,22 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
        (asesor_id, asesor_nombre, tipo_inmueble, direccion, barrio, ciudad, lado,
         propietario_nombre, propietario_telefono, propietario_fuente,
         comprador_nombre, comprador_telefono, comprador_fuente,
-        tipo_transaccion, fecha_cierre, precio_cierre_usd,
-        comision_monto_usd, comision_agente_usd, comision_oficina_usd, observaciones, cargado_por)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21) RETURNING *`,
+        tipo_transaccion, fecha_cierre, moneda_original, tipo_cambio,
+        precio_cierre_usd, precio_cierre_original,
+        comision_monto_usd, comision_monto_original,
+        comision_agente_usd, comision_agente_original,
+        comision_oficina_usd, comision_oficina_original,
+        observaciones, cargado_por)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,COALESCE($16,'USD'),$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27) RETURNING *`,
     [
       asesorId || null, asesorNombre || null, tipoInmueble || null, direccion, barrio || null, ciudad || null, lado || null,
       propietarioNombre || null, propietarioTelefono || null, propietarioFuente || null,
       compradorNombre || null, compradorTelefono || null, compradorFuente || null,
-      tipoTransaccion || null, fechaCierre || null, precioCierreUsd || null,
-      comisionMontoUsd || null, comisionAgenteUsd || null, comisionOficinaUsd || null,
+      tipoTransaccion || null, fechaCierre || null, monedaOriginal || null, tipoCambio || null,
+      precioCierreUsd || null, precioCierreOriginal || null,
+      comisionMontoUsd || null, comisionMontoOriginal || null,
+      comisionAgenteUsd || null, comisionAgenteOriginal || null,
+      comisionOficinaUsd || null, comisionOficinaOriginal || null,
       observaciones || null, req.user.sub,
     ]
   );

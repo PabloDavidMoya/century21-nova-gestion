@@ -40,6 +40,37 @@ Hecho:
 - Se agregó el link "Proforma de cierre" a la barra lateral de las demás
   11 páginas de `admin/` (entre Reservas y Calendario), para que quede
   navegable desde cualquier pantalla del panel.
+- Probado en local: backend (`npm run dev`, puerto 3000) + frontend
+  estático (`python -m http.server 8731`, raíz del proyecto) — es el
+  mismo setup que ya estaba documentado más abajo. `CORS_ORIGIN` en
+  `.env` está fijo a `http://localhost:8731`, así que el frontend tiene
+  que servirse desde ese puerto puntual (no sirve abrir los `.html` con
+  `file://` directo, ni otro puerto).
+- Encontrado (no de esta sesión, pre-existente): `assets/js/api.js` sigue
+  con `API_BASE = 'http://localhost:3000'` hardcodeado — el sitio público
+  en GitHub Pages (`https://pablodavidmoya.github.io/century21-nova-gestion/`,
+  confirmado que Pages sirve desde `master`/raíz) no puede hablar con la
+  API real todavía. Falta la URL pública del Web Service de Render para
+  arreglarlo — pendiente, Pablo la va a pasar.
+
+### Ajuste en la misma sesión: tipo de inmueble + moneda en Proforma
+
+Pablo probó el módulo recién armado y pidió dos correcciones:
+1. "Tipo de inmueble" era un input de texto libre — se cambió a `<select>`
+   con las mismas opciones que ya usa "Cargar cierre" (Casa, Departamento,
+   Duplex, Terreno habitacional, Quinta, Local / Comercial, Casa en
+   condominio), para no tener texto suelto sin estandarizar.
+2. Los 4 montos (precio de cierre, comisión total, parte del agente, parte
+   de la oficina) no tenían forma de cargarse en Guaraníes — se agregó el
+   mismo patrón de Moneda + Tipo de cambio ajustable que ya usan Reservas
+   y Cargar cierre (un selector USD/Gs y un campo de TC que aparece solo
+   si se elige Gs; cada monto se tipea en la moneda elegida y se ve un
+   preview en USD al lado). Se guarda tanto el valor en USD (columnas
+   `*_usd`, las que usa el resto del sistema) como el monto y moneda
+   originales (columnas `*_original`, `moneda_original`, `tipo_cambio`),
+   para que el documento impreso muestre ambas cifras cuando la carga fue
+   en Gs. Columnas nuevas en `backend/migrations/006_proformas_moneda.sql`
+   (aplicada contra la base real).
 
 Pendiente para una sesión futura (no pedido todavía, anotado para no
 perderlo): botón "Convertir a cierre" que precargue el formulario de
