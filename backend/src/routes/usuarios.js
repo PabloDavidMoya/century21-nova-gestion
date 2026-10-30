@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
 const { requireAuth, requireBroker, STAFF_ROLES } = require('../middleware/auth');
@@ -13,8 +14,8 @@ router.get('/', requireAuth, requireBroker, async (req, res) => {
 });
 
 router.post('/', requireAuth, requireBroker, async (req, res) => {
-  const { email, password, rol, nombre, asesorId } = req.body;
-  if (!email || !password || !rol) return res.status(400).json({ error: 'Faltan email, password o rol' });
+  const { email, rol, nombre, asesorId } = req.body;
+  if (!email || !rol) return res.status(400).json({ error: 'Faltan email o rol' });
 
   if (STAFF_ROLES.includes(rol) && req.user.rol !== 'broker') {
     return res.status(403).json({ error: 'Solo un Broker puede crear logins de Broker, Gerente o Administración' });
@@ -22,9 +23,10 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
   if (rol === 'asesor' && !asesorId) {
     return res.status(400).json({ error: 'Para rol asesor hay que indicar a qué asesor corresponde (asesorId)' });
   }
-  if (password.length < 8) return res.status(400).json({ error: 'La contraseña tiene que tener al menos 8 caracteres' });
 
-  const hash = await bcrypt.hash(password, 10);
+  // El login es sin contraseña (link de acceso por email, ver routes/auth.js)
+  // — esta solo rellena la columna NOT NULL, nadie la va a tipear nunca.
+  const hash = await bcrypt.hash(crypto.randomBytes(24).toString('hex'), 10);
   try {
     const { rows } = await pool.query(
       `INSERT INTO usuarios (email, password_hash, rol, nombre, asesor_id)

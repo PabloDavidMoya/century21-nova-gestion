@@ -97,7 +97,7 @@
       <div class="field" id="wrapAsesor"><label>¿Qué asesor es?</label><select id="nuAsesor"></select></div>
       <div class="field" id="wrapNombre" style="display:none"><label>Nombre</label><input type="text" id="nuNombre"></div>
       <div class="field"><label>Email de acceso</label><input type="email" id="nuEmail" required></div>
-      <div class="field"><label>Contraseña (mínimo 8 caracteres)</label><input type="password" id="nuPass" required minlength="8"></div>
+      <p class="sub" style="margin:0">No hace falta definir contraseña: le vamos a mandar un email para que entre con un link de acceso.</p>
       <button type="submit" class="btn primary" style="padding:10px">Crear usuario</button>
       <div class="api-error" id="nuevoError"></div>
     </form>
@@ -196,7 +196,6 @@
         method: 'POST',
         body: JSON.stringify({
           email: document.getElementById('nuEmail').value,
-          password: document.getElementById('nuPass').value,
           rol: rol,
           nombre: rol !== 'asesor' ? document.getElementById('nuNombre').value : null,
           asesorId: rol === 'asesor' ? document.getElementById('nuAsesor').value : null,

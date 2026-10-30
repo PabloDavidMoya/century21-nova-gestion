@@ -1,8 +1,65 @@
 # Contexto del proyecto — Century 21 Nova · Plataforma de gestión
 
-Última actualización: 2026-10-30 (Deploy a producción: Render + Hostinger).
+Última actualización: 2026-10-30 (Login sin contraseña vía Brevo).
 
-## Sesión 2026-10-30: Deploy a producción (dominio mynovagency.com)
+## Sesión 2026-10-30 (parte 2): Login sin contraseña (magic link por email)
+
+Pablo pidió reemplazar el login por contraseña por acceso vía email como
+medida de seguridad: cada vez que alguien quiere entrar, pide el acceso con
+su email y le llega un link de un solo uso por correo (Brevo) — nunca
+escribe una contraseña.
+
+Hecho:
+- **`backend/src/lib/brevo.js`**: helper `enviarEmail({to, nombre, subject,
+  html})`, mismo patrón que ya usaban en otros proyectos de Pablo (POST a
+  `/v3/smtp/email` con la api-key). Si `BREVO_API_KEY` no está seteada,
+  loguea el error y no revienta la request.
+- **Tabla `login_tokens`** (`backend/schema.sql` +
+  `backend/migrations/008_login_tokens.sql`, migración incremental — NO
+  corrida todavía contra la base real de Render, falta correr
+  `npm run migrate:add` cuando se despliegue). Guarda el **hash SHA-256**
+  del token (nunca el token en texto plano), con `expires_at` (15 min) y
+  `used_at` (de un solo uso).
+- **`backend/src/routes/auth.js`**: dos rutas nuevas —
+  `POST /api/auth/solicitar-acceso` (recibe email, si existe un usuario
+  activo le genera el token y le manda el email con el link; responde
+  `{ok:true}` siempre, exista o no la cuenta, para no filtrar qué emails
+  están dados de alta) y `POST /api/auth/verificar-acceso` (canjea el
+  token por una sesión JWT real, igual que el login clásico). El
+  `POST /api/auth/login` con contraseña **se dejó vivo** como acceso de
+  emergencia, pero el frontend ya no lo usa.
+- **`backend/src/routes/usuarios.js`**: crear usuario ya no pide
+  `password` — se genera un hash aleatorio inutilizable (nadie lo va a
+  tipear nunca, el login es siempre por link).
+- **`index.html`** (login): el form ahora solo pide email y manda
+  "Enviarme el acceso". Si la URL trae `?acceso=<token>` (el link del
+  email), lo canjea solo contra `/api/auth/verificar-acceso` y entra
+  directo al panel correspondiente al rol.
+- **`admin/usuarios.html`**: sacado el campo de contraseña del alta de
+  usuarios nuevos.
+- **Variables de entorno nuevas** (documentadas en `.env.example`,
+  **todavía no cargadas en Render** — falta que Pablo pase la API key):
+  `BREVO_API_KEY`, `BREVO_SENDER_EMAIL` (remitente verificado en Brevo,
+  ej. `noreply@mynovagency.com`), `BREVO_SENDER_NAME`, `FRONTEND_URL`
+  (de dónde arma el link del email — si falta, cae en
+  `https://mynovagency.com`).
+
+Pendiente para cuando Pablo pase la API key de Brevo:
+1. Cargar `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`,
+   `FRONTEND_URL` en las variables de entorno del Web Service `nova-api`
+   en Render.
+2. Confirmar que el remitente (`BREVO_SENDER_EMAIL`) esté verificado en la
+   cuenta de Brevo de Pablo — si no, los emails salen rechazados.
+3. Correr `npm run migrate:add` contra la base real (vía Shell de Render o
+   apuntando `DATABASE_URL` local a la Externa de `nova-db`) para crear
+   `login_tokens`.
+4. `git push` (no lo corrí yo, ver nota de sesiones anteriores sobre el
+   modo automático bloqueando push) y confirmar que Render redespliega
+   solo al detectar el push.
+5. Probar el flujo completo en producción: pedir acceso con un email real,
+   abrir el link del correo, confirmar que entra al panel.
+
+## Sesión 2026-10-30 (parte 1): Deploy a producción (dominio mynovagency.com)
 
 Pablo dio de alta el dominio `mynovagency.com` en Hostinger (plan Business,
 ya usado por otros sitios suyos — policlinicanutrislim.com, desaf-ia.com,

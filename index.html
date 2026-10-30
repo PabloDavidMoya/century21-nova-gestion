@@ -22,16 +22,7 @@
     border:1px solid var(--border);font-size:.74rem;color:var(--text-3);line-height:1.5;
   }
   .api-error{color:var(--danger);font-size:.82rem;margin-top:10px;display:none}
-  .pass-wrap{position:relative}
-  .pass-wrap input{padding-right:40px}
-  .pass-toggle{
-    position:absolute;right:4px;top:50%;transform:translateY(-50%);
-    background:none;border:none;cursor:pointer;color:var(--text-3);
-    padding:6px;display:flex;align-items:center;justify-content:center;
-  }
-  .pass-toggle:hover{color:var(--text)}
-  .pass-toggle svg{width:18px;height:18px}
-  .pass-toggle .icon-eye-off{display:none}
+  .api-ok{color:var(--success,#2e7d32);font-size:.84rem;margin-top:10px;display:none;line-height:1.5}
 </style>
 </head>
 <body>
@@ -47,29 +38,25 @@
   <div class="login-card">
     <div class="login-banner"><img src="assets/img/nova_fondo.png" alt="Century 21 Nova"></div>
 
+    <div id="pantallaVerificando" style="display:none;text-align:center;padding:20px 0">
+      <p>Verificando tu acceso…</p>
+    </div>
+
     <form id="loginForm">
       <div class="field" style="margin-bottom:14px">
         <label for="user">Email</label>
         <input type="email" id="user" placeholder="nombre@century21nova.com" autocomplete="username" required>
       </div>
-      <div class="field" style="margin-bottom:10px">
-        <label for="pass">Contraseña</label>
-        <div class="pass-wrap">
-          <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password" required>
-          <button type="button" class="pass-toggle" id="passToggle" aria-label="Mostrar contraseña">
-            <svg class="icon-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-            <svg class="icon-eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a18.5 18.5 0 0 1 4.22-5.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
-          </button>
-        </div>
-      </div>
 
-      <button type="submit" class="btn primary" style="width:100%;margin-top:10px;padding:12px">Ingresar</button>
+      <button type="submit" class="btn primary" id="btnEnviar" style="width:100%;margin-top:10px;padding:12px">Enviarme el acceso</button>
       <div class="api-error" id="loginError"></div>
+      <div class="api-ok" id="loginOk"></div>
     </form>
 
     <p class="demo-note">
-      Accedé con tu usuario y contraseña. El panel que ves (Broker, Administración o Asesor/a)
-      depende del rol de tu cuenta — lo asigna quien administra los accesos.
+      Sin contraseña: te mandamos un link de acceso de un solo uso a tu email, válido por 15 minutos.
+      El panel que ves (Broker, Administración o Asesor/a) depende del rol de tu cuenta — lo asigna
+      quien administra los accesos.
     </p>
   </div>
   <p class="login-foot" style="position:relative;z-index:2">© Century 21 Nova — Plataforma de gestión interna</p>
@@ -85,33 +72,52 @@
     return 'admin/dashboard.html';
   }
 
+  async function verificarAcceso(token) {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('pantallaVerificando').style.display = '';
+    try {
+      var body = await C21Api.api('/api/auth/verificar-acceso', { method: 'POST', body: JSON.stringify({ token: token }) });
+      window.history.replaceState({}, '', window.location.pathname);
+      // api() no guarda sesión sola — la seteamos igual que hacía C21Api.login().
+      sessionStorage.setItem('c21-api-token', body.token);
+      sessionStorage.setItem('c21-api-usuario', JSON.stringify(body.usuario));
+      window.location.href = destinoPorRol(body.usuario.rol);
+    } catch (ex) {
+      document.getElementById('pantallaVerificando').style.display = 'none';
+      document.getElementById('loginForm').style.display = '';
+      var err = document.getElementById('loginError');
+      err.textContent = ex.message;
+      err.style.display = '';
+    }
+  }
+
   (function () {
     var u = C21Api.getUsuario();
     if (C21Api.getToken() && u) {
       window.location.href = destinoPorRol(u.rol);
+      return;
     }
+    var params = new URLSearchParams(window.location.search);
+    var token = params.get('acceso');
+    if (token) verificarAcceso(token);
   })();
-
-  document.getElementById('passToggle').addEventListener('click', function () {
-    var pass = document.getElementById('pass');
-    var mostrar = pass.type === 'password';
-    pass.type = mostrar ? 'text' : 'password';
-    this.classList.toggle('showing', mostrar);
-    this.querySelector('.icon-eye').style.display = mostrar ? 'none' : 'inline-flex';
-    this.querySelector('.icon-eye-off').style.display = mostrar ? 'inline-flex' : 'none';
-    this.setAttribute('aria-label', mostrar ? 'Ocultar contraseña' : 'Mostrar contraseña');
-  });
 
   document.getElementById('loginForm').addEventListener('submit', async function (e) {
     e.preventDefault();
-    var err = document.getElementById('loginError');
-    err.style.display = 'none';
+    var err = document.getElementById('loginError'); err.style.display = 'none';
+    var ok = document.getElementById('loginOk'); ok.style.display = 'none';
+    var btn = document.getElementById('btnEnviar');
+    btn.disabled = true; btn.textContent = 'Enviando…';
     try {
-      var usuario = await C21Api.login(document.getElementById('user').value, document.getElementById('pass').value);
-      window.location.href = destinoPorRol(usuario.rol);
+      await C21Api.api('/api/auth/solicitar-acceso', { method: 'POST', body: JSON.stringify({ email: document.getElementById('user').value }) });
+      ok.textContent = 'Si el email está dado de alta, te llegó un link de acceso. Revisá tu correo (y spam).';
+      ok.style.display = '';
+      e.target.reset();
     } catch (ex) {
       err.textContent = ex.message;
       err.style.display = '';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviarme el acceso';
     }
   });
 </script>

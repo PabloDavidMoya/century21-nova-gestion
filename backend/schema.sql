@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- para gen_random_uuid()
 -- prototipo (datos de prueba, se recargan con "npm run seed"). Antes de que
 -- haya datos reales cargados a mano en el panel, cambiar esto por
 -- migraciones incrementales (ALTER TABLE) que no pierdan información.
-DROP TABLE IF EXISTS proformas, reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
+DROP TABLE IF EXISTS login_tokens, proformas, reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
 
 CREATE TABLE asesores (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -35,6 +35,18 @@ CREATE TABLE usuarios (
   activo        BOOLEAN NOT NULL DEFAULT true,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Login sin contraseña: token de un solo uso mandado por email (Brevo).
+-- Se guarda el hash, nunca el token en texto plano.
+CREATE TABLE login_tokens (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id  UUID NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  token_hash  TEXT NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_login_tokens_usuario ON login_tokens (usuario_id);
 
 -- Ledger de cierres: cada fila es una transacción real (equivalente a las
 -- hojas "Datos"/"Octubre" de la planilla). El GCI, lados y captaciones de
