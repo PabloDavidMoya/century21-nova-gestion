@@ -1,7 +1,7 @@
 /* Century 21 Nova — cliente chico para la API real (backend/).
    Cambiar API_BASE cuando el backend esté desplegado en Render. */
 (function () {
-  var API_BASE = 'http://localhost:3000';
+  var API_BASE = 'https://api.mynovagency.com';
 
   function getToken() {
     try { return sessionStorage.getItem('c21-api-token'); } catch (e) { return null; }

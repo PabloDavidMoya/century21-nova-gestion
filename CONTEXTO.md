@@ -1,6 +1,50 @@
 # Contexto del proyecto — Century 21 Nova · Plataforma de gestión
 
-Última actualización: 2026-10-23 (Nuevo módulo Proforma de cierre).
+Última actualización: 2026-10-30 (Deploy a producción: Render + Hostinger).
+
+## Sesión 2026-10-30: Deploy a producción (dominio mynovagency.com)
+
+Pablo dio de alta el dominio `mynovagency.com` en Hostinger (plan Business,
+ya usado por otros sitios suyos — policlinicanutrislim.com, desaf-ia.com,
+y key-vox vía GitHub). Se montó todo de punta a punta:
+
+- **Backend desplegado en Render** como Web Service nuevo `nova-api`
+  (proyecto `nova`, región Frankfurt, mismo proyecto que `nova-db`),
+  Root Directory `backend`, build `npm install`, start `npm start`.
+  Plan **Free** elegido a propósito por Pablo para probar antes de pagar
+  (se puede subir a Starter $7/mes después sin recrear el servicio, desde
+  Settings > Instance Type). Variables de entorno cargadas: `DATABASE_URL`
+  (Internal Database URL de `nova-db`), `JWT_SECRET` (generado nuevo con
+  el botón "Generate" de Render, no reusa el de local), `CORS_ORIGIN=
+  https://mynovagency.com`. URL default de Render:
+  `nova-api-3njh.onrender.com`.
+- **Dominio custom en Render**: `api.mynovagency.com` agregado en
+  Settings > Custom Domains, con registro CNAME `api` →
+  `nova-api-3njh.onrender.com` creado en Hostinger (DNS/Nameservers >
+  Registros DNS). Verificado en vivo: `https://api.mynovagency.com/health`
+  responde `{"ok":true}` con SSL válido.
+- **`assets/js/api.js`**: `API_BASE` cambiado de `http://localhost:3000`
+  a `https://api.mynovagency.com`.
+- **Frontend en Hostinger**: el plan Business de Pablo NO tenía un sitio
+  libre — el único existente (`darkslategrey-nightingale-793787.
+  hostingersite.com`) ya sirve **key-vox** vía integración GitHub (no
+  tocar). El plan permite hasta 50 sitios/complementos, así que se creó
+  un **sitio nuevo** dentro del mismo plan Business, asignado a
+  `mynovagency.com`, subiendo un `.zip` con `index.html` + `admin/` +
+  `asesor/` + `assets/` (sin `backend/`, sin `.env`, sin `claves_nova.txt`,
+  sin los `.xlsx`). Verificado en vivo: `https://mynovagency.com` sirve el
+  login real con SSL.
+- **Pendiente de verificar con Pablo**: login end-to-end con credenciales
+  reales contra la API en producción (no se probó con credenciales reales
+  en esta sesión, solo se confirmó que `/health` responde y que `CORS_ORIGIN`
+  ya apunta al dominio correcto).
+- **Importante**: como el frontend en Hostinger se subió por `.zip` (no por
+  integración Git), **no se actualiza solo con `git push`** — hay que
+  volver a exportar/subir el `.zip` manualmente (o migrar a integración
+  GitHub como key-vox) cada vez que cambien los archivos de `admin/`,
+  `asesor/`, `assets/` o `index.html`.
+- Recordatorio que ya estaba anotado abajo y sigue vigente: **antes del
+  14/11/2026** pasar `nova-db` a plan pago o Render borra la base.
 
 ## Sesión 2026-10-23: Proforma de cierre (nuevo módulo)
 
@@ -472,15 +516,17 @@ cambios de esquema contra la base real, no `migrate`.
 
 1. Pantalla para cambiar la propia contraseña (lo pidió Pablo, todavía no
    se hizo).
-2. Desplegar el backend como Web Service en Render (proyecto `nova`,
-   Frankfurt) y apuntar el frontend ahí en vez de `localhost:3000`
-   (cambiar `API_BASE` en `assets/js/api.js`).
-3. Subir el frontend a Hostinger.
-4. Antes del 14/11/2026: pasar `nova-db` a plan pago.
-5. Brevo para emails transaccionales (invitación de acceso, recuperar
+2. ~~Desplegar el backend como Web Service en Render~~ — hecho 2026-10-30
+   (`nova-api`, ver sesión de esa fecha arriba).
+3. ~~Subir el frontend a Hostinger~~ — hecho 2026-10-30, pero por `.zip`
+   manual, no por integración Git (ver nota en la sesión 2026-10-30).
+4. Verificar con Pablo el login real end-to-end en producción
+   (`https://mynovagency.com` contra `https://api.mynovagency.com`).
+5. Antes del 14/11/2026: pasar `nova-db` a plan pago.
+6. Brevo para emails transaccionales (invitación de acceso, recuperar
    contraseña) — todavía no arrancado.
-6. Cargar a mano desde `admin/reservas.html` las reservas activas actuales
+7. Cargar a mano desde `admin/reservas.html` las reservas activas actuales
    (la planilla tenía nombres de asesor ambiguos, no se importaron solas —
    ver sección de la sesión 2026-10-21).
-7. Decidir con Pablo el duplicado Stefani/Stefania Morinigo y si modelar
+8. Decidir con Pablo el duplicado Stefani/Stefania Morinigo y si modelar
    el % de split de comisión por asesor (hoja `CATEGORIAS`).
