@@ -11,6 +11,11 @@
 <link rel="stylesheet" href="assets/css/base.css">
 <link rel="stylesheet" href="assets/css/components.css?v=2">
 <style>
+  .login-bg-video{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+  .login-bg-overlay{
+    position:fixed;inset:0;z-index:-1;
+    background:linear-gradient(180deg, rgba(15,5,9,.48), rgba(15,5,9,.62));
+  }
   .login-screen::before{
     content:"";position:fixed;inset:0;z-index:0;
     background:
@@ -36,6 +41,10 @@
 </div>
 
 <div class="login-screen">
+  <video class="login-bg-video" autoplay muted loop playsinline preload="metadata" poster="assets/img/hero-poster.jpg" aria-hidden="true">
+    <source src="assets/video/hero.mp4" type="video/mp4">
+  </video>
+  <div class="login-bg-overlay"></div>
   <div class="login-card">
     <div class="login-banner"><img src="assets/img/nova_fondo.png" alt="Century 21 Nova"></div>
 
@@ -65,6 +74,14 @@
 
 <script src="assets/js/theme.js"></script>
 <script src="assets/js/api.js"></script>
+<script>
+  (function () {
+    var v = document.querySelector('.login-bg-video');
+    if (!v) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { v.pause(); return; }
+    v.addEventListener('error', function () { v.style.display = 'none'; }, true);
+  })();
+</script>
 <script>
   // Si ya había sesión real de una visita anterior, entra directo a su panel.
   function destinoPorRol(rol) {
