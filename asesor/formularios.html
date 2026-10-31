@@ -89,7 +89,7 @@
 <script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  var USUARIO = C21Guard.requireRole(['asesor'], 1);
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion', 'asesor'], 1);
   if (USUARIO) {
     document.getElementById('sbNombre').textContent = USUARIO.nombre;
     document.getElementById('avIni').textContent = (USUARIO.nombre || '?').charAt(0).toUpperCase();
