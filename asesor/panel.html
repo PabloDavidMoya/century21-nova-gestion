@@ -41,6 +41,28 @@
   .acm-frame { width: 100%; height: 74vh; border: 1px solid var(--border); border-radius: 12px; }
   .pct-field { display: flex; align-items: center; gap: 8px; }
   .pct-field input { width: 80px; text-align: right; }
+
+  .filtro-tipo { display: flex; gap: 6px; }
+  .filtro-tipo button { opacity: .6; }
+  .filtro-tipo button.active { opacity: 1; background: var(--gold); color: var(--on-gold); border-color: var(--gold); }
+
+  /* Botón Learning: destacado, con brillo y "respiración" — placeholder
+     para cuando carguemos los cursos; por ahora solo lleva a una página
+     en construcción. */
+  .btn-learning {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    margin: 2px 2px 16px; padding: 11px 14px;
+    border-radius: 999px; border: none; cursor: pointer;
+    font-family: var(--font); font-weight: 700; font-size: .86rem;
+    color: #2c0f1a; text-decoration: none;
+    background: linear-gradient(135deg, var(--gold-200), var(--gold-500));
+    animation: learningBreathe 2.6s ease-in-out infinite;
+  }
+  .btn-learning svg { width: 17px; height: 17px; flex: 0 0 auto; }
+  @keyframes learningBreathe {
+    0%, 100% { box-shadow: 0 0 6px 1px rgba(221,111,145,.45); transform: scale(1); }
+    50% { box-shadow: 0 0 18px 7px rgba(221,111,145,.8); transform: scale(1.03); }
+  }
 </style>
 </head>
 <body>
@@ -52,6 +74,10 @@
       <div class="mark">C21</div>
       <div class="name">NOVA<small>Panel de asesor/a</small></div>
     </div>
+    <a class="btn-learning" href="learning.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c0 1.5 2.5 3 6 3s6-1.5 6-3v-5"/></svg>
+      Learning
+    </a>
     <nav class="nav-group">
       <div class="label">Mi panel</div>
       <a class="nav-link active" href="#resumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>Resumen</a>
@@ -62,6 +88,8 @@
       <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
       <a class="nav-link" href="#finanzas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Mis comisiones</a>
       <a class="nav-link" href="#acm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Tasación ACM</a>
+      <a class="nav-link" href="formularios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l5 5v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>Formularios</a>
+      <a class="nav-link" href="herramientas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2 2.8-2.8Z"/></svg>Herramientas</a>
       <a class="nav-link" href="#informes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Mis informes</a>
     </nav>
     <div class="sidebar-foot">
@@ -206,10 +234,17 @@
       <section id="finanzas">
         <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div class="card-title" style="font-size:1.05rem">Mis comisiones</div>
-          <div class="pct-field">
-            <label class="sub" for="finPct" style="margin:0">% según tu nivel</label>
-            <input type="number" id="finPct" min="1" max="100" step="1" value="60">
-            <span class="sub">%</span>
+          <div class="row gap-2" style="flex-wrap:wrap">
+            <div class="filtro-tipo" id="finFiltro">
+              <button type="button" class="btn sm active" data-tipo="TODAS">Todas</button>
+              <button type="button" class="btn sm" data-tipo="VENTA">Ventas</button>
+              <button type="button" class="btn sm" data-tipo="ALQUILER">Alquileres</button>
+            </div>
+            <div class="pct-field">
+              <label class="sub" for="finPct" style="margin:0">% según tu nivel</label>
+              <input type="number" id="finPct" min="1" max="100" step="1" value="60">
+              <span class="sub">%</span>
+            </div>
           </div>
         </div>
         <p class="sub" style="margin-bottom:14px">En alquileres cobrás el 100% de la comisión de la operación; en ventas a una punta se divide 50/50 entre captador y colocador. A eso siempre se le resta primero el 10% que va a la regional, y recién sobre lo que queda se aplica tu % de nivel.</p>
@@ -240,9 +275,14 @@
       </section>
 
       <section id="informes">
-        <div class="row between" style="margin-bottom:14px">
+        <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div class="card-title" style="font-size:1.05rem">Mis informes</div>
-          <div class="row gap-2">
+          <div class="row gap-2" style="flex-wrap:wrap">
+            <div class="filtro-tipo" id="infFiltro">
+              <button type="button" class="btn sm active" data-tipo="TODAS">Todas</button>
+              <button type="button" class="btn sm" data-tipo="VENTA">Ventas</button>
+              <button type="button" class="btn sm" data-tipo="ALQUILER">Alquileres</button>
+            </div>
             <button class="btn sm" id="btnImprimir">Imprimir</button>
             <button class="btn sm" id="btnDescargar">Descargar PDF</button>
           </div>
@@ -391,9 +431,26 @@
     document.getElementById('finPct').value = pctGuardado;
     renderFinanzas(usuario);
 
+    MIOS_TODOS = mios;
+    document.getElementById('infNombre').textContent = usuario.nombre;
+    document.getElementById('infFecha').textContent = new Date().toLocaleDateString('es-PY');
+    renderInformes();
+  }
+
+  var CONFIRMADOS_MIOS = [];
+  var MIOS_TODOS = [];
+  var FIN_FILTRO = 'TODAS';
+  var INF_FILTRO = 'TODAS';
+
+  function filtrarPorTipo(lista, filtro) {
+    if (filtro === 'TODAS') return lista;
+    return lista.filter(function (c) { return c.tipo_transaccion === filtro; });
+  }
+
+  function renderInformes() {
     var infTbody = document.getElementById('informesTbody');
     infTbody.innerHTML = '';
-    mios.forEach(function (c) {
+    filtrarPorTipo(MIOS_TODOS, INF_FILTRO).forEach(function (c) {
       var tr = document.createElement('tr');
       tr.innerHTML =
         '<td>' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</td>' +
@@ -403,11 +460,15 @@
         '<td>' + c.estado + '</td>';
       infTbody.appendChild(tr);
     });
-    document.getElementById('infNombre').textContent = usuario.nombre;
-    document.getElementById('infFecha').textContent = new Date().toLocaleDateString('es-PY');
   }
 
-  var CONFIRMADOS_MIOS = [];
+  document.querySelectorAll('#infFiltro button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      INF_FILTRO = btn.dataset.tipo;
+      document.querySelectorAll('#infFiltro button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      renderInformes();
+    });
+  });
 
   var PCT_REGIONAL = 0.10; // se le resta a la base antes de aplicar el % de nivel
 
@@ -418,7 +479,8 @@
     var finTbody = document.getElementById('finTbody');
     finTbody.innerHTML = '';
     var totalNeto = 0;
-    CONFIRMADOS_MIOS.forEach(function (c) {
+    var filas = filtrarPorTipo(CONFIRMADOS_MIOS, FIN_FILTRO);
+    filas.forEach(function (c) {
       var esCaptador = c.captador_id === usuario.asesorId;
       var esColocador = c.colocador_id === usuario.asesorId;
       var esAlquiler = c.tipo_transaccion === 'ALQUILER';
@@ -444,11 +506,19 @@
       finTbody.appendChild(tr);
     });
     document.getElementById('finTotal').textContent = fmtUSD(totalNeto);
-    document.getElementById('finCant').textContent = CONFIRMADOS_MIOS.length;
+    document.getElementById('finCant').textContent = filas.length;
   }
 
   document.getElementById('finPct').addEventListener('input', function () {
     if (USUARIO) renderFinanzas(USUARIO);
+  });
+
+  document.querySelectorAll('#finFiltro button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      FIN_FILTRO = btn.dataset.tipo;
+      document.querySelectorAll('#finFiltro button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+      if (USUARIO) renderFinanzas(USUARIO);
+    });
   });
 
   var TODOS_EVENTOS = [];
