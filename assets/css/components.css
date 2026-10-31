@@ -64,6 +64,25 @@
 .logout-link { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 9px 8px; font-size: .82rem; color: rgba(243,239,228,.55); text-decoration: none; border-radius: 8px; }
 .logout-link:hover { color: #fff; background: rgba(255,255,255,.06); }
 
+/* Compartir la plataforma por WhatsApp — solo visible en el área admin
+   (broker/gerente/administración); nunca en el login público ni para asesores. */
+.btn-whatsapp {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 10px; padding: 10px 14px; width: 100%;
+  border-radius: 999px; border: none; cursor: pointer; text-decoration: none;
+  font-family: var(--font); font-weight: 700; font-size: .8rem; color: #fff;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  box-shadow: 0 0 0 0 rgba(37,211,102,.55);
+  animation: waPulse 2.4s ease-out infinite;
+}
+.btn-whatsapp:hover { filter: brightness(1.05); }
+.btn-whatsapp svg { width: 16px; height: 16px; flex: 0 0 auto; }
+@keyframes waPulse {
+  0% { box-shadow: 0 0 0 0 rgba(37,211,102,.55); }
+  70% { box-shadow: 0 0 0 10px rgba(37,211,102,0); }
+  100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
+}
+
 /* ============== Contenido / Topbar ============== */
 .content { min-width: 0; }
 .topbar {
