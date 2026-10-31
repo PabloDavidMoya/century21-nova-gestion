@@ -83,6 +83,24 @@
   100% { box-shadow: 0 0 0 0 rgba(37,211,102,0); }
 }
 
+/* Botón Learning: destacado, con brillo y "respiración" — placeholder para
+   cuando carguemos los cursos. Visible para asesores y para el área admin
+   (la broker sube el contenido ahí). */
+.btn-learning {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 2px 2px 16px; padding: 11px 14px;
+  border-radius: 999px; border: none; cursor: pointer;
+  font-family: var(--font); font-weight: 700; font-size: .86rem;
+  color: #2c0f1a; text-decoration: none;
+  background: linear-gradient(135deg, var(--gold-200), var(--gold-500));
+  animation: learningBreathe 2.6s ease-in-out infinite;
+}
+.btn-learning svg { width: 17px; height: 17px; flex: 0 0 auto; }
+@keyframes learningBreathe {
+  0%, 100% { box-shadow: 0 0 6px 1px rgba(221,111,145,.45); transform: scale(1); }
+  50% { box-shadow: 0 0 18px 7px rgba(221,111,145,.8); transform: scale(1.03); }
+}
+
 /* ============== Contenido / Topbar ============== */
 .content { min-width: 0; }
 .topbar {

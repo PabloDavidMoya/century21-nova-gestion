@@ -10,20 +10,6 @@
 <link rel="stylesheet" href="../assets/css/base.css">
 <link rel="stylesheet" href="../assets/css/components.css">
 <style>
-  .btn-learning {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    margin: 2px 2px 16px; padding: 11px 14px;
-    border-radius: 999px; border: none; cursor: pointer;
-    font-family: var(--font); font-weight: 700; font-size: .86rem;
-    color: #2c0f1a; text-decoration: none;
-    background: linear-gradient(135deg, var(--gold-200), var(--gold-500));
-    animation: learningBreathe 2.6s ease-in-out infinite;
-  }
-  .btn-learning svg { width: 17px; height: 17px; flex: 0 0 auto; }
-  @keyframes learningBreathe {
-    0%, 100% { box-shadow: 0 0 6px 1px rgba(221,111,145,.45); transform: scale(1); }
-    50% { box-shadow: 0 0 18px 7px rgba(221,111,145,.8); transform: scale(1.03); }
-  }
   .placeholder-card { text-align: center; padding: 60px 30px; }
   .placeholder-card .ico {
     width: 64px; height: 64px; margin: 0 auto 18px; border-radius: 50%;
@@ -103,7 +89,7 @@
 <script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
 <script>
-  var USUARIO = C21Guard.requireRole(['asesor'], 1);
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion', 'asesor'], 1);
   if (USUARIO) {
     document.getElementById('sbNombre').textContent = USUARIO.nombre;
     document.getElementById('avIni').textContent = (USUARIO.nombre || '?').charAt(0).toUpperCase();
