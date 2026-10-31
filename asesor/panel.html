@@ -207,17 +207,18 @@
         <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div class="card-title" style="font-size:1.05rem">Mis comisiones</div>
           <div class="pct-field">
-            <label class="sub" for="finPct" style="margin:0">% neto que te queda</label>
+            <label class="sub" for="finPct" style="margin:0">% según tu nivel</label>
             <input type="number" id="finPct" min="1" max="100" step="1" value="60">
             <span class="sub">%</span>
           </div>
         </div>
+        <p class="sub" style="margin-bottom:14px">En alquileres cobrás el 100% de la comisión de la operación; en ventas a una punta se divide 50/50 entre captador y colocador. A eso siempre se le resta primero el 10% que va a la regional, y recién sobre lo que queda se aplica tu % de nivel.</p>
         <div class="grid grid-2" style="margin-bottom:20px">
           <div class="card kpi"><div class="label">Comisión neta acumulada</div><div class="value" id="finTotal">—</div></div>
           <div class="card kpi"><div class="label">Ventas confirmadas</div><div class="value" id="finCant">—</div></div>
         </div>
         <div class="card">
-          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Rol</th><th>Bruto</th><th>Comisión (oficina)</th><th>Mi comisión neta</th></tr></thead>
+          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Rol</th><th>Bruto</th><th>Mi base (según rol)</th><th>Menos 10% regional</th><th>Mi comisión neta</th></tr></thead>
             <tbody id="finTbody"></tbody>
           </table></div>
         </div>
@@ -408,6 +409,8 @@
 
   var CONFIRMADOS_MIOS = [];
 
+  var PCT_REGIONAL = 0.10; // se le resta a la base antes de aplicar el % de nivel
+
   function renderFinanzas(usuario) {
     var pct = Math.min(100, Math.max(1, Number(document.getElementById('finPct').value) || 60));
     try { localStorage.setItem('c21-fin-pct-' + usuario.asesorId, pct); } catch (e) {}
@@ -418,11 +421,16 @@
     CONFIRMADOS_MIOS.forEach(function (c) {
       var esCaptador = c.captador_id === usuario.asesorId;
       var esColocador = c.colocador_id === usuario.asesorId;
-      var rolTxt, miComision;
-      if (esCaptador && esColocador) { rolTxt = 'Captó y colocó'; miComision = c.gross_usd; }
-      else if (esCaptador) { rolTxt = 'Captador'; miComision = c.colocador_id ? c.gross_usd / 2 : c.gross_usd; }
-      else { rolTxt = 'Colocador'; miComision = c.captador_id ? c.gross_usd / 2 : c.gross_usd; }
-      var neta = miComision * (pct / 100);
+      var esAlquiler = c.tipo_transaccion === 'ALQUILER';
+      var rolTxt, base;
+      // Alquiler: toda la comisión va al asesor que hizo la operación.
+      // Venta a una punta (solo captador o solo colocador cargados): se
+      // divide 50/50. Si el mismo asesor captó y colocó, se queda con todo.
+      if (esCaptador && esColocador) { rolTxt = 'Captó y colocó'; base = c.gross_usd; }
+      else if (esAlquiler) { rolTxt = esCaptador ? 'Captador' : 'Colocador'; base = c.gross_usd; }
+      else { rolTxt = esCaptador ? 'Captador' : 'Colocador'; base = c.gross_usd / 2; }
+      var tocaRegional = base * PCT_REGIONAL;
+      var neta = (base - tocaRegional) * (pct / 100);
       totalNeto += neta;
       var tr = document.createElement('tr');
       tr.innerHTML =
@@ -430,7 +438,8 @@
         '<td>' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + '</td>' +
         '<td>' + rolTxt + '</td>' +
         '<td>' + fmtUSD(c.gross_usd) + '</td>' +
-        '<td>' + fmtUSD(miComision) + '</td>' +
+        '<td>' + fmtUSD(base) + '</td>' +
+        '<td>-' + fmtUSD(tocaRegional) + '</td>' +
         '<td style="font-weight:700;color:var(--gold)">' + fmtUSD(neta) + '</td>';
       finTbody.appendChild(tr);
     });
