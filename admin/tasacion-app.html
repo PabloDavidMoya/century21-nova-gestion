@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>C21 NOVA | Sistema Profesional de Tasación & ACM (Paraguay)</title>
 <link rel="icon" type="image/png" href="../assets/img/favicon-32.png">
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/guard.js"></script>
+    <script>
+      // Esta página se abre directo por URL (target="_blank" desde tasacion.html)
+      // así que necesita su propio guard, no alcanza con el de la que la embebe.
+      C21Guard.requireRole(['broker', 'gerente'], 1);
+    </script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

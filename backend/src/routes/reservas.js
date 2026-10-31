@@ -1,12 +1,18 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireBroker } = require('../middleware/auth');
+const { requireAuth, requireFullAccess, FULL_ACCESS_ROLES } = require('../middleware/auth');
 
-router.get('/', requireAuth, requireBroker, async (req, res) => {
+/* Un asesor solo ve sus propias reservas. Administración no tiene alcance
+   acá (su acceso es Finanzas) — Broker y Gerente ven todo. */
+router.get('/', requireAuth, async (req, res) => {
+  const rol = req.user.rol;
+  if (!FULL_ACCESS_ROLES.includes(rol) && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
+
   const { estado } = req.query;
   const cond = [];
   const vals = [];
   let i = 1;
+  if (rol === 'asesor') { cond.push(`r.asesor_id = $${i++}`); vals.push(req.user.asesorId); }
   if (estado) { cond.push(`r.estado = $${i++}`); vals.push(estado); }
   const where = cond.length ? 'WHERE ' + cond.join(' AND ') : '';
   const { rows } = await pool.query(
@@ -18,11 +24,16 @@ router.get('/', requireAuth, requireBroker, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, requireBroker, async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
+  const rol = req.user.rol;
+  if (!FULL_ACCESS_ROLES.includes(rol) && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
+
   const {
-    fecha, asesorId, asesorNombre, ciudad, tipoTransaccion, formaPago, oficinaCaptadora,
+    fecha, asesorNombre, ciudad, tipoTransaccion, formaPago, oficinaCaptadora,
     precioUsd, monedaOriginal, precioOriginal, senaUsd, comisionUsd, estado, observaciones,
   } = req.body;
+  // Un asesor solo puede cargar reservas a su propio nombre.
+  const asesorId = rol === 'asesor' ? req.user.asesorId : (req.body.asesorId || null);
   if (!fecha || (!asesorId && !asesorNombre)) {
     return res.status(400).json({ error: 'Faltan fecha o asesor' });
   }
@@ -41,7 +52,7 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
+router.patch('/:id', requireAuth, requireFullAccess, async (req, res) => {
   const { estado, comisionUsd, observaciones } = req.body;
   const { rows } = await pool.query(
     `UPDATE reservas SET
@@ -55,7 +66,7 @@ router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   await pool.query('DELETE FROM reservas WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

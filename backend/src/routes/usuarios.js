@@ -2,9 +2,9 @@ const router = require('express').Router();
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db');
-const { requireAuth, requireBroker, STAFF_ROLES } = require('../middleware/auth');
+const { requireAuth, requireFullAccess, STAFF_ROLES } = require('../middleware/auth');
 
-router.get('/', requireAuth, requireBroker, async (req, res) => {
+router.get('/', requireAuth, requireFullAccess, async (req, res) => {
   const { rows } = await pool.query(
     `SELECT u.id, u.email, u.rol, u.nombre, u.activo, u.asesor_id, a.nombre AS asesor_nombre, u.created_at
      FROM usuarios u LEFT JOIN asesores a ON a.id = u.asesor_id
@@ -13,7 +13,7 @@ router.get('/', requireAuth, requireBroker, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, requireBroker, async (req, res) => {
+router.post('/', requireAuth, requireFullAccess, async (req, res) => {
   const { email, rol, nombre, asesorId } = req.body;
   if (!email || !rol) return res.status(400).json({ error: 'Faltan email o rol' });
 
@@ -40,7 +40,7 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
   }
 });
 
-router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
+router.patch('/:id', requireAuth, requireFullAccess, async (req, res) => {
   const { activo, password } = req.body;
   if (req.params.id === req.user.sub && activo === false) {
     return res.status(400).json({ error: 'No podés desactivar tu propia cuenta' });
@@ -65,7 +65,7 @@ router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   if (req.params.id === req.user.sub) {
     return res.status(400).json({ error: 'No podés eliminar tu propia cuenta' });
   }

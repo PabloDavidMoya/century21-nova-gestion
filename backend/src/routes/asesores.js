@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireBroker } = require('../middleware/auth');
+const { requireAuth, requireFullAccess, FULL_ACCESS_ROLES } = require('../middleware/auth');
 
 /* GCI y lados se calculan desde "cierres", no se guardan como columna.
    Solo cuentan cierres con estado "Confirmado" (las ventas autoadjudicadas
@@ -35,15 +35,15 @@ function nivelPorLados(lados) {
   return { key: 'bronze', label: 'Bronze' };
 }
 
-/* Un asesor solo ve su propia ficha. Gerente/Administración no tienen
-   alcance acá (su acceso es Finanzas) — solo el Broker ve el listado
-   completo con los números de todos. */
+/* Un asesor solo ve su propia ficha. Administración no tiene alcance acá
+   (su acceso es Finanzas) — Broker y Gerente ven el listado completo con
+   los números de todos. */
 router.get('/', requireAuth, async (req, res) => {
   if (req.user.rol === 'asesor') {
     const { rows } = await pool.query(AGGREGATE_SELECT + ' HAVING a.id = $1', [req.user.asesorId]);
     return res.json(rows.map((a) => ({ ...a, nivel: nivelPorLados(Number(a.lados)) })));
   }
-  if (req.user.rol !== 'broker') return res.status(403).json({ error: 'No autorizado' });
+  if (!FULL_ACCESS_ROLES.includes(req.user.rol)) return res.status(403).json({ error: 'No autorizado' });
   const { rows } = await pool.query(AGGREGATE_SELECT + ' ORDER BY gci_acumulado DESC');
   res.json(rows.map((a) => ({ ...a, nivel: nivelPorLados(Number(a.lados)) })));
 });
@@ -52,7 +52,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   if (req.user.rol === 'asesor' && req.user.asesorId !== req.params.id) {
     return res.status(403).json({ error: 'No autorizado' });
   }
-  if (req.user.rol !== 'asesor' && req.user.rol !== 'broker') {
+  if (req.user.rol !== 'asesor' && !FULL_ACCESS_ROLES.includes(req.user.rol)) {
     return res.status(403).json({ error: 'No autorizado' });
   }
   const { rows } = await pool.query(AGGREGATE_SELECT + ' HAVING a.id = $1', [req.params.id]);
@@ -60,7 +60,7 @@ router.get('/:id', requireAuth, async (req, res) => {
   res.json({ ...rows[0], nivel: nivelPorLados(Number(rows[0].lados)) });
 });
 
-router.post('/', requireAuth, requireBroker, async (req, res) => {
+router.post('/', requireAuth, requireFullAccess, async (req, res) => {
   const { nombre, ingresoFecha, metaAnual, estado } = req.body;
   if (!nombre) return res.status(400).json({ error: 'Falta nombre' });
   const { rows } = await pool.query(
@@ -71,7 +71,7 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-router.put('/:id', requireAuth, requireBroker, async (req, res) => {
+router.put('/:id', requireAuth, requireFullAccess, async (req, res) => {
   const { nombre, ingresoFecha, metaAnual, estado } = req.body;
   const { rows } = await pool.query(
     `UPDATE asesores SET
@@ -87,7 +87,7 @@ router.put('/:id', requireAuth, requireBroker, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   await pool.query('DELETE FROM asesores WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

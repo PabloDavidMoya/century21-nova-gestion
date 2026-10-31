@@ -1,23 +1,26 @@
 /* Century 21 Nova · Plataforma de Gestión — Design tokens
-   Marca: dorado sobre verde petróleo (ver assets/img/nova_fondo.png)
+   Marca: rosa sobre verde petróleo (ver assets/img/nova_fondo.png)
    El sidebar es siempre oscuro (identidad de marca). El contenido
-   principal respeta el tema claro/oscuro elegido por el usuario. */
+   principal respeta el tema claro/oscuro elegido por el usuario.
+   La escala --gold-* es el acento de marca: quedó con ese nombre por
+   compatibilidad con el resto del código (badges, var(--gold), etc.)
+   pero sus valores son rosa, no dorado. */
 
 :root {
   --font: "Montserrat", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
   --font-display: "Cinzel", "Montserrat", serif;
 
-  /* Escala dorada (fija en ambos temas) */
-  --gold-50:  #fcf8ee;
-  --gold-100: #f7edcc;
-  --gold-200: #eeda99;
-  --gold-300: #e3c266;
-  --gold-400: #d4af37;
-  --gold-500: #c5a059;
-  --gold-600: #a67c37;
-  --gold-700: #845f2a;
-  --gold-800: #6c4e24;
-  --gold-900: #59401f;
+  /* Escala de acento — rosa (fija en ambos temas) */
+  --gold-50:  #fdf2f5;
+  --gold-100: #fbe1e8;
+  --gold-200: #f5c2d1;
+  --gold-300: #ec9bb3;
+  --gold-400: #dd6f91;
+  --gold-500: #c94f78;
+  --gold-600: #a93a62;
+  --gold-700: #872e4f;
+  --gold-800: #6b2540;
+  --gold-900: #531d33;
 
   /* Escala petróleo (fija, usada por el sidebar y acentos de marca) */
   --petrol-900: #03100e;
@@ -38,60 +41,60 @@
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #071214;
-  --bg-glow-1: rgba(0, 160, 170, .12);
-  --bg-glow-2: rgba(212, 175, 55, .10);
-  --surface: #0e1d20;
-  --surface-2: #15292d;
-  --surface-3: #1b3337;
-  --border: rgba(212, 175, 55, .16);
-  --text: #f3efe4;
-  --text-2: #c9c2ae;
-  --text-3: #8f8a7a;
+  --bg: #1c1116;
+  --bg-glow-1: rgba(221, 111, 145, .14);
+  --bg-glow-2: rgba(135, 46, 79, .14);
+  --surface: #261720;
+  --surface-2: #301d28;
+  --surface-3: #3c2531;
+  --border: rgba(221, 111, 145, .18);
+  --text: #f7edf1;
+  --text-2: #cfb0bb;
+  --text-3: #93737e;
   --gold: var(--gold-400);
   --gold-hi: var(--gold-200);
   --gold-lo: var(--gold-700);
-  --on-gold: #1a1203;
-  --input-bg: #0a1618;
+  --on-gold: #2c0f1a;
+  --input-bg: #1a1014;
 }
 
 /* ---------- Tema claro ---------- */
 :root[data-theme="light"] {
   color-scheme: light;
-  --bg: #f6f4ec;
-  --bg-glow-1: rgba(212, 175, 55, .10);
-  --bg-glow-2: rgba(11, 41, 36, .06);
+  --bg: #fdf3f5;
+  --bg-glow-1: rgba(221, 111, 145, .12);
+  --bg-glow-2: rgba(169, 58, 98, .07);
   --surface: #ffffff;
-  --surface-2: #f3efe2;
-  --surface-3: #ece5d2;
-  --border: rgba(11, 41, 36, .12);
-  --text: #11211d;
-  --text-2: #3e4c47;
-  --text-3: #6c766f;
+  --surface-2: #fcedf1;
+  --surface-3: #f6dde5;
+  --border: rgba(169, 58, 98, .14);
+  --text: #2c131c;
+  --text-2: #6e4452;
+  --text-3: #93707b;
   --gold: var(--gold-600);
   --gold-hi: var(--gold-700);
   --gold-lo: var(--gold-800);
-  --on-gold: #1a1203;
+  --on-gold: #fdf2f5;
   --input-bg: #ffffff;
 }
 
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
-    --bg: #f6f4ec;
-    --bg-glow-1: rgba(212, 175, 55, .10);
-    --bg-glow-2: rgba(11, 41, 36, .06);
+    --bg: #fdf3f5;
+    --bg-glow-1: rgba(221, 111, 145, .12);
+    --bg-glow-2: rgba(169, 58, 98, .07);
     --surface: #ffffff;
-    --surface-2: #f3efe2;
-    --surface-3: #ece5d2;
-    --border: rgba(11, 41, 36, .12);
-    --text: #11211d;
-    --text-2: #3e4c47;
-    --text-3: #6c766f;
+    --surface-2: #fcedf1;
+    --surface-3: #f6dde5;
+    --border: rgba(169, 58, 98, .14);
+    --text: #2c131c;
+    --text-2: #6e4452;
+    --text-3: #93707b;
     --gold: var(--gold-600);
     --gold-hi: var(--gold-700);
     --gold-lo: var(--gold-800);
-    --on-gold: #1a1203;
+    --on-gold: #fdf2f5;
     --input-bg: #ffffff;
   }
 }

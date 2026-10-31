@@ -1,13 +1,13 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireBroker } = require('../middleware/auth');
+const { requireAuth, requireFullAccess, FULL_ACCESS_ROLES } = require('../middleware/auth');
 
 /* Un asesor solo ve sus propios cierres (cualquier estado, para seguir su
-   aprobación). Gerente/Administración no tocan cierres — su alcance es
-   Finanzas (facturas, mensualidades). Solo el Broker ve todo. */
+   aprobación). Administración no toca cierres — su alcance es Finanzas
+   (facturas, mensualidades). Broker y Gerente ven todo. */
 router.get('/', requireAuth, async (req, res) => {
   const rol = req.user.rol;
-  if (rol !== 'broker' && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
+  if (!FULL_ACCESS_ROLES.includes(rol) && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
 
   const where = rol === 'asesor' ? 'WHERE c.captador_id = $1 OR c.colocador_id = $1' : '';
   const vals = rol === 'asesor' ? [req.user.asesorId] : [];
@@ -26,7 +26,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 router.post('/', requireAuth, async (req, res) => {
   const rol = req.user.rol;
-  if (rol !== 'broker' && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
+  if (!FULL_ACCESS_ROLES.includes(rol) && rol !== 'asesor') return res.status(403).json({ error: 'No autorizado' });
 
   const { fechaCobro, tipoInmueble, tipoTransaccion, grossUsd, direccion, observaciones } = req.body;
   if (!fechaCobro || !grossUsd || !tipoTransaccion) {
@@ -62,8 +62,8 @@ router.post('/', requireAuth, async (req, res) => {
   res.status(201).json(rows[0]);
 });
 
-// Aprobar/rechazar una venta autoadjudicada por un asesor — solo el Broker.
-router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
+// Aprobar/rechazar una venta autoadjudicada por un asesor — Broker y Gerente.
+router.patch('/:id', requireAuth, requireFullAccess, async (req, res) => {
   const { estado } = req.body;
   if (!['Pendiente', 'Confirmado', 'Rechazado'].includes(estado)) {
     return res.status(400).json({ error: 'Estado inválido' });
@@ -76,7 +76,7 @@ router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   await pool.query('DELETE FROM cierres WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

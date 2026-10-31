@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireBroker } = require('../middleware/auth');
+const { requireAuth, requireFullAccess } = require('../middleware/auth');
 
-router.get('/', requireAuth, requireBroker, async (req, res) => {
+router.get('/', requireAuth, requireFullAccess, async (req, res) => {
   const { estado } = req.query;
   const cond = [];
   const vals = [];
@@ -18,7 +18,7 @@ router.get('/', requireAuth, requireBroker, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, requireBroker, async (req, res) => {
+router.post('/', requireAuth, requireFullAccess, async (req, res) => {
   const {
     asesorId, asesorNombre, tipoInmueble, direccion, barrio, ciudad, lado,
     propietarioNombre, propietarioTelefono, propietarioFuente,
@@ -64,7 +64,7 @@ router.post('/', requireAuth, requireBroker, async (req, res) => {
 // manda solo { estado }) como la edición completa del formulario (manda
 // todos los campos) — lo que no venga en el body queda como estaba, vía
 // COALESCE.
-router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
+router.patch('/:id', requireAuth, requireFullAccess, async (req, res) => {
   const {
     estado, asesorId, asesorNombre, tipoInmueble, direccion, barrio, ciudad, lado,
     propietarioNombre, propietarioTelefono, propietarioFuente,
@@ -127,7 +127,7 @@ router.patch('/:id', requireAuth, requireBroker, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   await pool.query('DELETE FROM proformas WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });

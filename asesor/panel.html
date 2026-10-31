@@ -13,6 +13,21 @@
   section + section { margin-top: 28px; }
   .cartera-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
   .cartera-row:last-child{border-bottom:none}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal-dow{text-align:center;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);padding-bottom:6px}
+  .cal-day{min-height:72px;border:1px solid var(--border);border-radius:8px;padding:6px;font-size:.78rem;background:var(--surface-2)}
+  .cal-day.empty{border-color:transparent;background:transparent}
+  .cal-day .n{font-weight:600;color:var(--text-2)}
+  .cal-day.today .n{color:var(--gold)}
+  .cal-day .ev{margin-top:4px;font-size:.68rem;line-height:1.3;padding:2px 4px;border-radius:4px;background:var(--surface-3);color:var(--text-2)}
+
+  @media print {
+    body * { visibility: hidden; }
+    #informesPrintArea, #informesPrintArea * { visibility: visible; }
+    #informesPrintArea { position: absolute; top: 0; left: 0; width: 100%; }
+    #informesHeader { display: block !important; }
+  }
 </style>
 </head>
 <body>
@@ -30,7 +45,10 @@
       <a class="nav-link" href="#desafios"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Mis desafíos</a>
       <a class="nav-link" href="#cartera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Mi cartera</a>
       <a class="nav-link" href="#misventas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>Cargar mi venta</a>
-      <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario del equipo</a>
+      <a class="nav-link" href="#reservas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>Mis reservas</a>
+      <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
+      <a class="nav-link" href="#finanzas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Mis comisiones</a>
+      <a class="nav-link" href="#informes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Mis informes</a>
     </nav>
     <div class="sidebar-foot">
       <div class="sidebar-user">
@@ -130,9 +148,77 @@
         </div>
       </section>
 
+      <section id="reservas">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mis reservas</div>
+        <div class="grid grid-2" style="gap:20px;align-items:start">
+          <div class="card">
+            <form id="miReservaForm" style="display:flex;flex-direction:column;gap:14px">
+              <div class="grid grid-2" style="gap:14px">
+                <div class="field"><label>Fecha</label><input type="date" id="rvFecha" required></div>
+                <div class="field"><label>Tipo</label>
+                  <select id="rvTipoTx"><option value="Venta">Venta</option><option value="Alquiler">Alquiler</option></select>
+                </div>
+              </div>
+              <div class="field"><label>Ciudad</label><input type="text" id="rvCiudad"></div>
+              <div class="grid grid-2" style="gap:14px">
+                <div class="field"><label>Precio (USD)</label><input type="number" id="rvPrecio" step="0.01"></div>
+                <div class="field"><label>Seña (USD)</label><input type="number" id="rvSena" step="0.01"></div>
+              </div>
+              <div class="field"><label>Observaciones (opcional)</label><textarea id="rvObs"></textarea></div>
+              <button type="submit" class="btn primary" style="padding:11px">Cargar reserva</button>
+              <div class="api-error" id="rvError"></div>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Mis reservas cargadas</div>
+            <div id="misReservasLista" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
+      </section>
+
       <section id="calendario">
-        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Calendario del equipo</div>
-        <div class="card"><div id="eventList"></div></div>
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Calendario</div>
+        <p class="sub" style="margin-bottom:14px">Los eventos los carga la oficina — acá solo los podés ver.</p>
+        <div class="card">
+          <div class="row between" style="margin-bottom:12px">
+            <button class="btn sm" id="calPrev">&larr;</button>
+            <b id="calMesLabel"></b>
+            <button class="btn sm" id="calNext">&rarr;</button>
+          </div>
+          <div id="calGrid" class="cal-grid"></div>
+        </div>
+      </section>
+
+      <section id="finanzas">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mis comisiones</div>
+        <div class="grid grid-2" style="margin-bottom:20px">
+          <div class="card kpi"><div class="label">Comisión total acumulada</div><div class="value" id="finTotal">—</div></div>
+          <div class="card kpi"><div class="label">Ventas confirmadas</div><div class="value" id="finCant">—</div></div>
+        </div>
+        <div class="card">
+          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Rol</th><th>Bruto</th><th>Mi comisión</th></tr></thead>
+            <tbody id="finTbody"></tbody>
+          </table></div>
+        </div>
+      </section>
+
+      <section id="informes">
+        <div class="row between" style="margin-bottom:14px">
+          <div class="card-title" style="font-size:1.05rem">Mis informes</div>
+          <div class="row gap-2">
+            <button class="btn sm" id="btnImprimir">Imprimir</button>
+            <button class="btn sm" id="btnDescargar">Descargar CSV</button>
+          </div>
+        </div>
+        <div class="card" id="informesPrintArea">
+          <div id="informesHeader" style="display:none;margin-bottom:14px">
+            <h2 style="margin:0">Informe de operaciones — <span id="infNombre"></span></h2>
+            <p class="sub">Generado el <span id="infFecha"></span></p>
+          </div>
+          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Inmueble</th><th>Monto</th><th>Estado</th></tr></thead>
+            <tbody id="informesTbody"></tbody>
+          </table></div>
+        </div>
       </section>
     </main>
   </div>
@@ -238,19 +324,163 @@
       listaVentas.appendChild(row);
     });
 
-    var eventos = await C21Api.api('/api/calendario');
-    var ew = document.getElementById('eventList');
-    ew.innerHTML = '';
-    eventos.forEach(function (ev) {
-      var d = new Date(ev.fecha + 'T00:00:00');
+    TODOS_EVENTOS = await C21Api.api('/api/calendario');
+    renderCalendario();
+
+    var reservas = await C21Api.api('/api/reservas');
+    var rl = document.getElementById('misReservasLista');
+    rl.innerHTML = '';
+    if (!reservas.length) rl.innerHTML = '<p class="sub">Todavía no cargaste ninguna reserva.</p>';
+    var badgeByEstadoR = { Activa: 'gold-lvl', Cerrada: 'green', Caida: 'red' };
+    reservas.slice(0, 20).forEach(function (r) {
       var row = document.createElement('div');
-      row.className = 'event-row';
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
       row.innerHTML =
-        '<div class="event-date"><b>' + d.getDate() + '</b><span>' + d.toLocaleDateString('es-PY', {month:'short'}) + '</span></div>' +
-        '<div><div style="font-weight:600;font-size:.88rem">' + ev.titulo + '</div><div class="sub">' + (ev.hora || 'Todo el día') + '</div></div>';
-      ew.appendChild(row);
+        '<div class="row between"><b style="font-size:.88rem">' + r.tipo_transaccion + (r.ciudad ? ' · ' + r.ciudad : '') + '</b>' +
+        (r.precio_usd ? '<span style="font-weight:700;color:var(--gold)">' + fmtUSD(r.precio_usd) + '</span>' : '') + '</div>' +
+        '<div class="sub">' + new Date(r.fecha).toLocaleDateString('es-PY') + '</div>' +
+        '<span class="badge ' + (badgeByEstadoR[r.estado] || 'gold-lvl') + '">' + r.estado + '</span>';
+      rl.appendChild(row);
     });
+
+    // Comisión propia por cierre: mismo criterio que el backend (asesores.js) —
+    // 100% si captó y colocó, 50% si solo uno de los dos roles.
+    var confirmados = mios.filter(function (c) { return c.estado === 'Confirmado'; });
+    var finTbody = document.getElementById('finTbody');
+    finTbody.innerHTML = '';
+    var totalComision = 0;
+    confirmados.forEach(function (c) {
+      var esCaptador = c.captador_id === usuario.asesorId;
+      var esColocador = c.colocador_id === usuario.asesorId;
+      var rolTxt, miComision;
+      if (esCaptador && esColocador) { rolTxt = 'Captó y colocó'; miComision = c.gross_usd; }
+      else if (esCaptador) { rolTxt = 'Captador'; miComision = c.colocador_id ? c.gross_usd / 2 : c.gross_usd; }
+      else { rolTxt = 'Colocador'; miComision = c.captador_id ? c.gross_usd / 2 : c.gross_usd; }
+      totalComision += miComision;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</td>' +
+        '<td>' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + '</td>' +
+        '<td>' + rolTxt + '</td>' +
+        '<td>' + fmtUSD(c.gross_usd) + '</td>' +
+        '<td style="font-weight:700;color:var(--gold)">' + fmtUSD(miComision) + '</td>';
+      finTbody.appendChild(tr);
+    });
+    document.getElementById('finTotal').textContent = fmtUSD(totalComision);
+    document.getElementById('finCant').textContent = confirmados.length;
+
+    var infTbody = document.getElementById('informesTbody');
+    infTbody.innerHTML = '';
+    mios.forEach(function (c) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</td>' +
+        '<td>' + c.tipo_transaccion + '</td>' +
+        '<td>' + (c.tipo_inmueble || '—') + '</td>' +
+        '<td>' + fmtUSD(c.gross_usd) + '</td>' +
+        '<td>' + c.estado + '</td>';
+      infTbody.appendChild(tr);
+    });
+    document.getElementById('infNombre').textContent = usuario.nombre;
+    document.getElementById('infFecha').textContent = new Date().toLocaleDateString('es-PY');
   }
+
+  var TODOS_EVENTOS = [];
+  var calViewDate = new Date();
+  calViewDate.setDate(1);
+
+  function renderCalendario() {
+    var grid = document.getElementById('calGrid');
+    var year = calViewDate.getFullYear(), month = calViewDate.getMonth();
+    var hoy = new Date();
+    document.getElementById('calMesLabel').textContent =
+      calViewDate.toLocaleDateString('es-PY', { month: 'long', year: 'numeric' });
+
+    var porDia = {};
+    TODOS_EVENTOS.forEach(function (ev) {
+      var d = new Date(ev.fecha + 'T00:00:00');
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        porDia[d.getDate()] = porDia[d.getDate()] || [];
+        porDia[d.getDate()].push(ev);
+      }
+    });
+
+    grid.innerHTML = '';
+    ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].forEach(function (dow) {
+      var el = document.createElement('div');
+      el.className = 'cal-dow';
+      el.textContent = dow;
+      grid.appendChild(el);
+    });
+
+    var primerDia = new Date(year, month, 1).getDay();
+    var totalDias = new Date(year, month + 1, 0).getDate();
+    for (var i = 0; i < primerDia; i++) {
+      var hueco = document.createElement('div');
+      hueco.className = 'cal-day empty';
+      grid.appendChild(hueco);
+    }
+    for (var dia = 1; dia <= totalDias; dia++) {
+      var cell = document.createElement('div');
+      var esHoy = hoy.getFullYear() === year && hoy.getMonth() === month && hoy.getDate() === dia;
+      cell.className = 'cal-day' + (esHoy ? ' today' : '');
+      var html = '<div class="n">' + dia + '</div>';
+      (porDia[dia] || []).forEach(function (ev) {
+        html += '<div class="ev">' + ev.titulo + '</div>';
+      });
+      cell.innerHTML = html;
+      grid.appendChild(cell);
+    }
+  }
+
+  document.getElementById('calPrev').addEventListener('click', function () {
+    calViewDate.setMonth(calViewDate.getMonth() - 1);
+    renderCalendario();
+  });
+  document.getElementById('calNext').addEventListener('click', function () {
+    calViewDate.setMonth(calViewDate.getMonth() + 1);
+    renderCalendario();
+  });
+
+  document.getElementById('miReservaForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('rvError');
+    errBox.style.display = 'none';
+    try {
+      await C21Api.api('/api/reservas', {
+        method: 'POST',
+        body: JSON.stringify({
+          fecha: document.getElementById('rvFecha').value,
+          tipoTransaccion: document.getElementById('rvTipoTx').value,
+          ciudad: document.getElementById('rvCiudad').value || null,
+          precioUsd: parseFloat(document.getElementById('rvPrecio').value) || null,
+          senaUsd: parseFloat(document.getElementById('rvSena').value) || null,
+          observaciones: document.getElementById('rvObs').value || null,
+        }),
+      });
+      e.target.reset();
+      iniciar(USUARIO);
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+
+  document.getElementById('btnImprimir').addEventListener('click', function () { window.print(); });
+  document.getElementById('btnDescargar').addEventListener('click', function () {
+    var filas = [['Fecha', 'Tipo', 'Inmueble', 'Monto USD', 'Estado']];
+    document.querySelectorAll('#informesTbody tr').forEach(function (tr) {
+      filas.push(Array.prototype.map.call(tr.children, function (td) { return td.textContent; }));
+    });
+    var csv = filas.map(function (f) { return f.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
+    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mis-informes.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  });
 
   document.getElementById('mvMoneda').addEventListener('change', function () {
     document.getElementById('mvTcWrap').style.display = this.value === 'Gs' ? '' : 'none';

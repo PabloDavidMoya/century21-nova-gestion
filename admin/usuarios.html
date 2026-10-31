@@ -14,7 +14,7 @@
   .login-gate .card{width:100%;max-width:380px}
   .api-error{color:var(--danger);font-size:.82rem;margin-top:6px;display:none}
   .rol-badge.broker{background:linear-gradient(135deg,var(--gold-200),var(--gold-700));color:var(--on-gold);border:none}
-  .rol-badge.gerente{background:rgba(212,175,55,.18);color:var(--gold-hi)}
+  .rol-badge.gerente{background:rgba(221,111,145,.18);color:var(--gold-hi)}
   .rol-badge.administracion{background:rgba(192,192,200,.18);color:#c3c7d1}
   .rol-badge.asesor{background:var(--surface-2);color:var(--text-2)}
 </style>
@@ -181,7 +181,7 @@
     await cargarUsuarios();
   }
 
-  var USUARIO = C21Guard.requireRole(['broker'], 1);
+  var USUARIO = C21Guard.requireRole(['broker', 'gerente'], 1);
   if (USUARIO) { iniciar(USUARIO); }
 
   document.getElementById('btnNuevo').addEventListener('click', function () {

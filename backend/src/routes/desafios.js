@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const { pool } = require('../db');
-const { requireAuth, requireBroker } = require('../middleware/auth');
+const { requireAuth, requireFullAccess, FULL_ACCESS_ROLES } = require('../middleware/auth');
 
 /* Un asesor solo ve sus propios desafíos y los de "Todos" — no los
    desafíos puntuales de otros compañeros. */
@@ -16,7 +16,7 @@ router.get('/', requireAuth, async (req, res) => {
   res.json(rows);
 });
 
-router.post('/', requireAuth, requireBroker, async (req, res) => {
+router.post('/', requireAuth, requireFullAccess, async (req, res) => {
   const { titulo, descripcion, tipo, asignadoA, meta, unidad, vence } = req.body;
   if (!titulo || !meta) return res.status(400).json({ error: 'Faltan titulo o meta' });
   const { rows } = await pool.query(
@@ -31,7 +31,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   // Un asesor solo puede tocar su propio progreso (y solo en desafíos propios
   // o de "Todos"); marcar Cumplido/editar estado es cosa del Broker.
   const { progreso, estado } = req.body;
-  const esStaff = req.user.rol === 'broker';
+  const esStaff = FULL_ACCESS_ROLES.includes(req.user.rol);
 
   if (!esStaff) {
     const { rows: actual } = await pool.query('SELECT asignado_a FROM desafios WHERE id = $1', [req.params.id]);
@@ -51,7 +51,7 @@ router.patch('/:id', requireAuth, async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete('/:id', requireAuth, requireBroker, async (req, res) => {
+router.delete('/:id', requireAuth, requireFullAccess, async (req, res) => {
   await pool.query('DELETE FROM desafios WHERE id = $1', [req.params.id]);
   res.status(204).end();
 });
