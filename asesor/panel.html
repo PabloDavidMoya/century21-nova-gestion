@@ -28,6 +28,19 @@
     #informesPrintArea { position: absolute; top: 0; left: 0; width: 100%; }
     #informesHeader { display: block !important; }
   }
+
+  /* Panel dividido por secciones (no todo en una sola página larga): el menú
+     de la izquierda queda fijo y el contenido del medio scrollea solo. */
+  html, body { height: 100%; }
+  .app { height: 100vh; overflow: hidden; }
+  .sidebar { height: 100vh; overflow-y: auto; }
+  .content { height: 100vh; overflow-y: auto; }
+  .main > section { display: none; }
+  .main > section.active-section { display: block; }
+
+  .acm-frame { width: 100%; height: 74vh; border: 1px solid var(--border); border-radius: 12px; }
+  .pct-field { display: flex; align-items: center; gap: 8px; }
+  .pct-field input { width: 80px; text-align: right; }
 </style>
 </head>
 <body>
@@ -48,6 +61,7 @@
       <a class="nav-link" href="#reservas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>Mis reservas</a>
       <a class="nav-link" href="#calendario"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
       <a class="nav-link" href="#finanzas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Mis comisiones</a>
+      <a class="nav-link" href="#acm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Tasación ACM</a>
       <a class="nav-link" href="#informes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Mis informes</a>
     </nav>
     <div class="sidebar-foot">
@@ -79,7 +93,7 @@
     </header>
 
     <main class="main">
-      <section id="resumen">
+      <section id="resumen" class="active-section">
         <p class="sub" style="margin-bottom:18px">Tus números del año en curso, tu meta y los desafíos que te propone la oficina.</p>
 
         <div class="grid grid-4" style="margin-bottom:20px">
@@ -190,15 +204,37 @@
       </section>
 
       <section id="finanzas">
-        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mis comisiones</div>
+        <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div class="card-title" style="font-size:1.05rem">Mis comisiones</div>
+          <div class="pct-field">
+            <label class="sub" for="finPct" style="margin:0">% neto que te queda</label>
+            <input type="number" id="finPct" min="1" max="100" step="1" value="60">
+            <span class="sub">%</span>
+          </div>
+        </div>
         <div class="grid grid-2" style="margin-bottom:20px">
-          <div class="card kpi"><div class="label">Comisión total acumulada</div><div class="value" id="finTotal">—</div></div>
+          <div class="card kpi"><div class="label">Comisión neta acumulada</div><div class="value" id="finTotal">—</div></div>
           <div class="card kpi"><div class="label">Ventas confirmadas</div><div class="value" id="finCant">—</div></div>
         </div>
         <div class="card">
-          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Rol</th><th>Bruto</th><th>Mi comisión</th></tr></thead>
+          <div class="table-wrap"><table class="data"><thead><tr><th>Fecha</th><th>Tipo</th><th>Rol</th><th>Bruto</th><th>Comisión (oficina)</th><th>Mi comisión neta</th></tr></thead>
             <tbody id="finTbody"></tbody>
           </table></div>
+        </div>
+      </section>
+
+      <section id="acm">
+        <div class="card" style="margin-bottom:20px">
+          <div class="row between" style="flex-wrap:wrap;gap:12px">
+            <div>
+              <div class="card-title">Tasación / Análisis Comparativo de Mercado</div>
+              <p class="sub">Calculá un valor sugerido comparando con testigos del mercado y generá un informe imprimible.</p>
+            </div>
+            <a class="btn primary" href="../admin/tasacion-app.html" target="_blank" rel="noopener">Abrir a pantalla completa ↗</a>
+          </div>
+        </div>
+        <div class="card">
+          <iframe class="acm-frame" src="../admin/tasacion-app.html" title="Tasación y ACM Century 21 Nova"></iframe>
         </div>
       </section>
 
@@ -207,7 +243,7 @@
           <div class="card-title" style="font-size:1.05rem">Mis informes</div>
           <div class="row gap-2">
             <button class="btn sm" id="btnImprimir">Imprimir</button>
-            <button class="btn sm" id="btnDescargar">Descargar CSV</button>
+            <button class="btn sm" id="btnDescargar">Descargar PDF</button>
           </div>
         </div>
         <div class="card" id="informesPrintArea">
@@ -228,6 +264,8 @@
 <script src="../assets/js/api.js"></script>
 <script src="../assets/js/guard.js"></script>
 <script src="../assets/js/app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script>
   function fmtUSD(n) { return '$ ' + Math.round(n).toLocaleString('es-PY'); }
 
@@ -344,30 +382,13 @@
     });
 
     // Comisión propia por cierre: mismo criterio que el backend (asesores.js) —
-    // 100% si captó y colocó, 50% si solo uno de los dos roles.
-    var confirmados = mios.filter(function (c) { return c.estado === 'Confirmado'; });
-    var finTbody = document.getElementById('finTbody');
-    finTbody.innerHTML = '';
-    var totalComision = 0;
-    confirmados.forEach(function (c) {
-      var esCaptador = c.captador_id === usuario.asesorId;
-      var esColocador = c.colocador_id === usuario.asesorId;
-      var rolTxt, miComision;
-      if (esCaptador && esColocador) { rolTxt = 'Captó y colocó'; miComision = c.gross_usd; }
-      else if (esCaptador) { rolTxt = 'Captador'; miComision = c.colocador_id ? c.gross_usd / 2 : c.gross_usd; }
-      else { rolTxt = 'Colocador'; miComision = c.captador_id ? c.gross_usd / 2 : c.gross_usd; }
-      totalComision += miComision;
-      var tr = document.createElement('tr');
-      tr.innerHTML =
-        '<td>' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</td>' +
-        '<td>' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + '</td>' +
-        '<td>' + rolTxt + '</td>' +
-        '<td>' + fmtUSD(c.gross_usd) + '</td>' +
-        '<td style="font-weight:700;color:var(--gold)">' + fmtUSD(miComision) + '</td>';
-      finTbody.appendChild(tr);
-    });
-    document.getElementById('finTotal').textContent = fmtUSD(totalComision);
-    document.getElementById('finCant').textContent = confirmados.length;
+    // 100% si captó y colocó, 50% si solo uno de los dos roles. Sobre eso se
+    // aplica el % neto que le queda al asesor (editable, varía por persona).
+    CONFIRMADOS_MIOS = mios.filter(function (c) { return c.estado === 'Confirmado'; });
+    var pctGuardado = 60;
+    try { pctGuardado = Number(localStorage.getItem('c21-fin-pct-' + usuario.asesorId)) || 60; } catch (e) {}
+    document.getElementById('finPct').value = pctGuardado;
+    renderFinanzas(usuario);
 
     var infTbody = document.getElementById('informesTbody');
     infTbody.innerHTML = '';
@@ -384,6 +405,42 @@
     document.getElementById('infNombre').textContent = usuario.nombre;
     document.getElementById('infFecha').textContent = new Date().toLocaleDateString('es-PY');
   }
+
+  var CONFIRMADOS_MIOS = [];
+
+  function renderFinanzas(usuario) {
+    var pct = Math.min(100, Math.max(1, Number(document.getElementById('finPct').value) || 60));
+    try { localStorage.setItem('c21-fin-pct-' + usuario.asesorId, pct); } catch (e) {}
+
+    var finTbody = document.getElementById('finTbody');
+    finTbody.innerHTML = '';
+    var totalNeto = 0;
+    CONFIRMADOS_MIOS.forEach(function (c) {
+      var esCaptador = c.captador_id === usuario.asesorId;
+      var esColocador = c.colocador_id === usuario.asesorId;
+      var rolTxt, miComision;
+      if (esCaptador && esColocador) { rolTxt = 'Captó y colocó'; miComision = c.gross_usd; }
+      else if (esCaptador) { rolTxt = 'Captador'; miComision = c.colocador_id ? c.gross_usd / 2 : c.gross_usd; }
+      else { rolTxt = 'Colocador'; miComision = c.captador_id ? c.gross_usd / 2 : c.gross_usd; }
+      var neta = miComision * (pct / 100);
+      totalNeto += neta;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + new Date(c.fecha_cobro).toLocaleDateString('es-PY') + '</td>' +
+        '<td>' + c.tipo_transaccion + (c.tipo_inmueble ? ' · ' + c.tipo_inmueble : '') + '</td>' +
+        '<td>' + rolTxt + '</td>' +
+        '<td>' + fmtUSD(c.gross_usd) + '</td>' +
+        '<td>' + fmtUSD(miComision) + '</td>' +
+        '<td style="font-weight:700;color:var(--gold)">' + fmtUSD(neta) + '</td>';
+      finTbody.appendChild(tr);
+    });
+    document.getElementById('finTotal').textContent = fmtUSD(totalNeto);
+    document.getElementById('finCant').textContent = CONFIRMADOS_MIOS.length;
+  }
+
+  document.getElementById('finPct').addEventListener('input', function () {
+    if (USUARIO) renderFinanzas(USUARIO);
+  });
 
   var TODOS_EVENTOS = [];
   var calViewDate = new Date();
@@ -468,18 +525,26 @@
 
   document.getElementById('btnImprimir').addEventListener('click', function () { window.print(); });
   document.getElementById('btnDescargar').addEventListener('click', function () {
-    var filas = [['Fecha', 'Tipo', 'Inmueble', 'Monto USD', 'Estado']];
+    var filas = [];
     document.querySelectorAll('#informesTbody tr').forEach(function (tr) {
       filas.push(Array.prototype.map.call(tr.children, function (td) { return td.textContent; }));
     });
-    var csv = filas.map(function (f) { return f.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(','); }).join('\n');
-    var blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'mis-informes.csv';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    var nombre = document.getElementById('infNombre').textContent;
+    var fecha = document.getElementById('infFecha').textContent;
+    var doc = new window.jspdf.jsPDF();
+    doc.setFontSize(14);
+    doc.text('Informe de operaciones — ' + nombre, 14, 18);
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text('Generado el ' + fecha, 14, 25);
+    doc.autoTable({
+      startY: 32,
+      head: [['Fecha', 'Tipo', 'Inmueble', 'Monto', 'Estado']],
+      body: filas,
+      headStyles: { fillColor: [169, 58, 98] },
+      styles: { fontSize: 9 },
+    });
+    doc.save('mis-informes.pdf');
   });
 
   document.getElementById('mvMoneda').addEventListener('change', function () {
@@ -524,6 +589,32 @@
       errBox.style.display = '';
     }
   });
+
+  // Panel dividido: cada link del menú muestra su sección y oculta las demás
+  // (antes era todo una sola página larga tipo landing).
+  var NAV_LINKS = Array.prototype.slice.call(document.querySelectorAll('.sidebar .nav-link[href^="#"]'));
+  var SECCIONES = Array.prototype.slice.call(document.querySelectorAll('.main > section'));
+
+  function activarSeccion(id) {
+    if (!document.getElementById(id)) return;
+    SECCIONES.forEach(function (s) { s.classList.toggle('active-section', s.id === id); });
+    NAV_LINKS.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + id); });
+    document.querySelector('.content').scrollTop = 0;
+    var sidebar = document.querySelector('.sidebar'), backdrop = document.querySelector('.sidebar-backdrop');
+    if (sidebar) sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+  }
+
+  NAV_LINKS.forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var id = a.getAttribute('href').slice(1);
+      history.replaceState(null, '', '#' + id);
+      activarSeccion(id);
+    });
+  });
+
+  activarSeccion((location.hash || '#resumen').slice(1));
 
   var USUARIO = C21Guard.requireRole(['asesor'], 1);
   if (USUARIO) { iniciar(USUARIO); }

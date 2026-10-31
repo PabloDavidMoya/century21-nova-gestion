@@ -8,9 +8,11 @@
     <script src="../assets/js/api.js"></script>
     <script src="../assets/js/guard.js"></script>
     <script>
-      // Esta página se abre directo por URL (target="_blank" desde tasacion.html)
-      // así que necesita su propio guard, no alcanza con el de la que la embebe.
-      C21Guard.requireRole(['broker', 'gerente'], 1);
+      // Esta página se abre directo por URL (target="_blank" desde tasacion.html,
+      // o embebida en asesor/panel.html) así que necesita su propio guard, no
+      // alcanza con el de la que la embebe. Los asesores también tienen acceso
+      // (de solo uso de la herramienta, no hay datos de otros asesores acá).
+      C21Guard.requireRole(['broker', 'gerente', 'asesor'], 1);
     </script>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
