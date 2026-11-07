@@ -18,6 +18,15 @@ app.use('/api/mensualidades', require('./routes/mensualidades'));
 app.use('/api/facturas', require('./routes/facturas'));
 app.use('/api/reservas', require('./routes/reservas'));
 app.use('/api/proformas', require('./routes/proformas'));
+app.use('/api/propiedades', require('./routes/propiedades'));
+app.use('/api/leads', require('./routes/leads'));
+app.use('/api/actividad', require('./routes/actividad'));
+app.use('/api/tareas', require('./routes/tareas'));
+app.use('/api/presupuesto', require('./routes/presupuesto'));
+app.use('/api/reclutamiento', require('./routes/reclutamiento'));
+app.use('/api/capacitaciones', require('./routes/capacitaciones'));
+app.use('/api/acompanamientos', require('./routes/acompanamientos'));
+app.use('/api/bancos', require('./routes/bancos'));
 
 app.use((err, req, res, next) => {
   console.error(err);

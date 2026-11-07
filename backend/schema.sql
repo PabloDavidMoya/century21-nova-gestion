@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto; -- para gen_random_uuid()
 -- prototipo (datos de prueba, se recargan con "npm run seed"). Antes de que
 -- haya datos reales cargados a mano en el panel, cambiar esto por
 -- migraciones incrementales (ALTER TABLE) que no pierdan información.
-DROP TABLE IF EXISTS login_tokens, proformas, reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores CASCADE;
+DROP TABLE IF EXISTS login_tokens, proformas, reservas, facturas_proveedores, mensualidades, calendario_eventos, desafios, cierres, usuarios, asesores, movimientos_bancarios, acompanamientos, capacitaciones, reclutamiento, presupuesto, tareas, actividad_asesores, leads, propiedades CASCADE;
 
 CREATE TABLE asesores (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -185,3 +185,139 @@ CREATE TABLE proformas (
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_proformas_fecha ON proformas (fecha_cierre);
+
+-- Cartera de inmuebles/captaciones (propiedades que el equipo tiene para
+-- vender o alquilar), para cruzarla con leads y cierres.
+CREATE TABLE propiedades (
+  id                          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  asesor_captador_id          UUID REFERENCES asesores(id),
+  tipo_inmueble               TEXT,
+  direccion                   TEXT,
+  barrio                      TEXT,
+  ciudad                      TEXT,
+  operacion                   TEXT CHECK (operacion IN ('Venta', 'Alquiler')),
+  precio_usd                  NUMERIC(14,2),
+  moneda_original              TEXT NOT NULL DEFAULT 'USD',
+  precio_original              NUMERIC(14,2),
+  exclusiva                   BOOLEAN NOT NULL DEFAULT false,
+  fecha_captacion              DATE,
+  fecha_vencimiento_exclusiva  DATE,
+  estado                       TEXT NOT NULL DEFAULT 'Activa' CHECK (estado IN ('Activa', 'Vendida', 'Alquilada', 'Retirada')),
+  observaciones                TEXT,
+  cargado_por                  UUID REFERENCES usuarios(id),
+  created_at                   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_propiedades_fecha_captacion ON propiedades (fecha_captacion);
+
+-- Leads/interesados que llegan por Marketplace, Messenger, WhatsApp, etc.,
+-- para dar seguimiento y atarlos a una propiedad puntual de la cartera.
+CREATE TABLE leads (
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre_interesado       TEXT NOT NULL,
+  contacto                TEXT,
+  fuente                  TEXT,
+  propiedad_id            UUID REFERENCES propiedades(id),
+  asesor_asignado_id      UUID REFERENCES asesores(id),
+  fecha_primer_contacto   TIMESTAMPTZ,
+  estado                  TEXT NOT NULL DEFAULT 'Nuevo' CHECK (estado IN ('Nuevo', 'En gestión', 'Visita agendada', 'Caído', 'Cerrado')),
+  observaciones           TEXT,
+  cargado_por             UUID REFERENCES usuarios(id),
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_leads_created_at ON leads (created_at);
+
+-- Registro de actividad diaria de cada asesor (llamadas, reuniones, visitas,
+-- prospección, farming), para medir el esfuerzo detrás de los cierres.
+CREATE TABLE actividad_asesores (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  asesor_id   UUID NOT NULL REFERENCES asesores(id),
+  fecha       DATE NOT NULL,
+  tipo        TEXT CHECK (tipo IN ('Llamada', 'Reunión', 'Visita', 'Prospección', 'Farming')),
+  cantidad    INT NOT NULL DEFAULT 1,
+  notas       TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_actividad_asesores_fecha ON actividad_asesores (fecha);
+CREATE INDEX idx_actividad_asesores_asesor_id ON actividad_asesores (asesor_id);
+
+-- Tareas internas asignadas a usuarios (staff o asesores), con fecha límite.
+CREATE TABLE tareas (
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  descripcion        TEXT NOT NULL,
+  responsable_id     UUID REFERENCES usuarios(id),
+  fecha_asignacion   DATE NOT NULL DEFAULT CURRENT_DATE,
+  fecha_limite       DATE,
+  estado             TEXT NOT NULL DEFAULT 'Pendiente' CHECK (estado IN ('Pendiente', 'Hecha', 'Vencida')),
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_tareas_fecha_limite ON tareas (fecha_limite);
+
+-- Presupuesto mensual por categoría (ingresos/gastos previstos), para
+-- comparar contra lo real de cierres/facturas_proveedores.
+CREATE TABLE presupuesto (
+  id                        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  anio                      INT NOT NULL,
+  mes                       INT NOT NULL CHECK (mes BETWEEN 1 AND 12),
+  categoria                 TEXT NOT NULL,
+  presupuesto_ingresos_usd  NUMERIC(14,2) NOT NULL DEFAULT 0,
+  presupuesto_gastos_usd    NUMERIC(14,2) NOT NULL DEFAULT 0,
+  created_at                TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (anio, mes, categoria)
+);
+
+-- Pipeline de reclutamiento de nuevos asesores (contacto → entrevista →
+-- sesión de carrera → incorporado).
+CREATE TABLE reclutamiento (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  nombre          TEXT NOT NULL,
+  contacto        TEXT,
+  fecha_contacto  DATE,
+  etapa           TEXT NOT NULL DEFAULT 'Contacto' CHECK (etapa IN ('Contacto', 'Entrevista', 'Sesión de carrera', 'Incorporado', 'Descartado')),
+  responsable_id  UUID REFERENCES usuarios(id),
+  observaciones   TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Capacitaciones/entrenamientos internos, con convocados vs. asistentes,
+-- para medir participación del equipo.
+CREATE TABLE capacitaciones (
+  id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fecha              DATE NOT NULL,
+  tema               TEXT NOT NULL,
+  responsable_id     UUID REFERENCES usuarios(id),
+  convocados_count   INT,
+  asistentes_count   INT,
+  observaciones      TEXT,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_capacitaciones_fecha ON capacitaciones (fecha);
+
+-- Acompañamientos a asesores (salida de campo o coaching), con plan de
+-- mejora, para dejar trazabilidad del seguimiento del broker/gerente.
+CREATE TABLE acompanamientos (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  asesor_id       UUID NOT NULL REFERENCES asesores(id),
+  fecha           DATE NOT NULL,
+  tipo            TEXT CHECK (tipo IN ('Salida de campo', 'Coaching')),
+  responsable_id  UUID REFERENCES usuarios(id),
+  plan_mejora     TEXT,
+  observaciones   TEXT,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_acompanamientos_asesor_id ON acompanamientos (asesor_id);
+
+-- Movimientos bancarios (ingresos y egresos reales de cuenta), para
+-- conciliar contra cierres y facturas_proveedores.
+CREATE TABLE movimientos_bancarios (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  fecha             DATE NOT NULL,
+  cuenta            TEXT,
+  tipo              TEXT CHECK (tipo IN ('Ingreso', 'Egreso')),
+  monto_usd         NUMERIC(14,2),
+  moneda_original   TEXT NOT NULL DEFAULT 'USD',
+  monto_original    NUMERIC(14,2),
+  concepto          TEXT,
+  conciliado        BOOLEAN NOT NULL DEFAULT false,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_movimientos_bancarios_fecha ON movimientos_bancarios (fecha);

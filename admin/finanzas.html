@@ -22,12 +22,17 @@
       <a class="nav-link" href="asesores.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Asesores</a>
       <a class="nav-link" href="metas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>Metas y proyecciones</a>
       <a class="nav-link" href="desafios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V4a1 1 0 0 1 1-1h11l3 3-3 3H5"/></svg>Desafíos</a>
+      <a class="nav-link" href="dashboard-360.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>Dashboard 360°</a>
     </nav>
     <nav class="nav-group">
       <div class="label">Operación</div>
       <a class="nav-link" href="cierres.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>Cargar cierre</a>
       <a class="nav-link" href="reservas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M8 16h5"/></svg>Reservas</a>
       <a class="nav-link" href="proformas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 15h6M9 11h3"/></svg>Proforma de cierre</a>
+      <a class="nav-link" href="cartera.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Cartera</a>
+      <a class="nav-link" href="leads.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Leads</a>
+      <a class="nav-link" href="tareas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Tareas</a>
+      <a class="nav-link" href="otc.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>OTC</a>
       <a class="nav-link" href="calendario.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Calendario</a>
       <a class="nav-link active" href="finanzas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>Finanzas</a>
       <a class="nav-link" href="tasacion.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Tasación ACM</a>
@@ -147,6 +152,89 @@
             <thead><tr><th>Asesor</th><th>Mes</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
             <tbody id="mensBody"></tbody>
           </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="row between" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div class="card-title">Presupuesto</div>
+          <div class="row gap-1">
+            <input type="number" id="pAnio" value="2026" style="width:90px;padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text)">
+            <select id="pMes" style="padding:7px 10px;border-radius:10px;border:1px solid var(--border);background:var(--input-bg);color:var(--text)"></select>
+          </div>
+        </div>
+        <p class="sub" style="margin-bottom:14px">Presupuesto por categoría para el mes elegido. Guardar de nuevo una categoría/mes actualiza el valor existente.</p>
+        <div class="grid grid-2" style="gap:14px;align-items:end;margin-bottom:14px">
+          <div class="field"><label>Categoría</label>
+            <select id="pCategoria">
+              <option value="">—</option>
+              <option>Alquiler oficina</option>
+              <option>Salarios</option>
+              <option>Honorarios</option>
+              <option>Regalía por transacciones</option>
+              <option>Fee</option>
+              <option>Informconf</option>
+              <option>Consumo cafetería</option>
+              <option>Uniformes personal</option>
+              <option>Internet</option>
+              <option>Ultracasas</option>
+              <option>Infocasas</option>
+              <option>Electricidad</option>
+              <option>Agua</option>
+              <option>Publicidad Facebook</option>
+              <option>Diseñador gráfico</option>
+              <option>Monitoreo</option>
+              <option>Asesoría legal</option>
+              <option>Regalo Top Producer</option>
+              <option>Sistema 21online</option>
+              <option>Eventos con asesores</option>
+              <option>Pago de viajes</option>
+              <option>Estacionamiento</option>
+              <option>Pago a MSA / Nacional C21 Paraguay</option>
+              <option>Librería</option>
+              <option>Expensas</option>
+              <option>Impuestos (IVA)</option>
+              <option>Servicio de limpieza</option>
+              <option>Otros</option>
+            </select>
+          </div>
+          <div class="field"><label>Presupuesto de ingresos (USD)</label><input type="number" id="pIngresos" step="0.01"></div>
+        </div>
+        <div class="grid grid-2" style="gap:14px;align-items:end;margin-bottom:14px">
+          <div class="field"><label>Presupuesto de gastos (USD)</label><input type="number" id="pGastos" step="0.01"></div>
+          <button class="btn primary" id="btnGuardarPresupuesto" style="padding:11px">Guardar</button>
+        </div>
+        <div class="api-error" id="presupuestoError"></div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Categoría</th><th>Presupuesto ingresos</th><th>Presupuesto gastos</th></tr></thead>
+            <tbody id="presupuestoBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <div class="card-title" style="margin-bottom:16px">Movimientos bancarios</div>
+        <div class="grid grid-2" style="gap:20px;align-items:start;margin-bottom:14px">
+          <form id="bancoForm" style="display:flex;flex-direction:column;gap:14px">
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Fecha</label><input type="date" id="bFecha" required></div>
+              <div class="field"><label>Cuenta</label><input type="text" id="bCuenta" placeholder="ej: Itaú cta cte"></div>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Tipo</label><select id="bTipo"><option value="Ingreso">Ingreso</option><option value="Egreso">Egreso</option></select></div>
+              <div class="field"><label>Concepto</label><input type="text" id="bConcepto"></div>
+            </div>
+            <div class="grid grid-2" style="gap:14px">
+              <div class="field"><label>Moneda</label><select id="bMoneda"><option value="USD">USD</option><option value="Gs">Guaraníes</option></select></div>
+              <div class="field"><label>Monto (en la moneda elegida)</label><input type="number" id="bMonto" step="0.01" required></div>
+            </div>
+            <div class="field" id="bTcWrap" style="display:none"><label>Tipo de cambio (Gs por USD)</label><input type="number" id="bTc" value="5750"></div>
+            <div class="field"><label>Monto en USD</label><input type="text" id="bMontoPreview" disabled style="font-weight:700;color:var(--gold)"></div>
+            <button type="submit" class="btn primary" style="padding:11px">Guardar movimiento</button>
+            <div class="api-error" id="bancoError"></div>
+          </form>
+          <div id="listaBancos" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
       </div>
     </main>
@@ -287,10 +375,136 @@
   });
   document.getElementById('mAnio').addEventListener('change', cargarMensualidades);
 
+  // ---- Presupuesto ----
+  var selPMes = document.getElementById('pMes');
+  MESES_LABEL.forEach(function (m, i) {
+    var o = document.createElement('option'); o.value = i + 1; o.textContent = m;
+    if (i === 9) o.selected = true;
+    selPMes.appendChild(o);
+  });
+
+  async function cargarPresupuesto() {
+    var anio = Number(document.getElementById('pAnio').value) || 2026;
+    var mes = Number(selPMes.value);
+    var rows = await C21Api.api('/api/presupuesto?anio=' + anio + '&mes=' + mes);
+    var body = document.getElementById('presupuestoBody');
+    body.innerHTML = '';
+    if (!rows.length) { body.innerHTML = '<tr><td colspan="3" class="sub">No hay presupuesto cargado para este mes todavía.</td></tr>'; return; }
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><b>' + r.categoria + '</b></td>' +
+        '<td>' + fmtUSD(r.presupuesto_ingresos_usd || 0) + '</td>' +
+        '<td>' + fmtUSD(r.presupuesto_gastos_usd || 0) + '</td>';
+      body.appendChild(tr);
+    });
+  }
+
+  document.getElementById('pAnio').addEventListener('change', cargarPresupuesto);
+  selPMes.addEventListener('change', cargarPresupuesto);
+
+  document.getElementById('btnGuardarPresupuesto').addEventListener('click', async function () {
+    var errBox = document.getElementById('presupuestoError');
+    errBox.style.display = 'none';
+    var categoria = document.getElementById('pCategoria').value;
+    if (!categoria) { errBox.textContent = 'Elegí una categoría.'; errBox.style.display = ''; return; }
+    try {
+      await C21Api.api('/api/presupuesto', {
+        method: 'POST',
+        body: JSON.stringify({
+          anio: Number(document.getElementById('pAnio').value) || 2026,
+          mes: Number(selPMes.value),
+          categoria: categoria,
+          presupuestoIngresosUsd: parseFloat(document.getElementById('pIngresos').value) || 0,
+          presupuestoGastosUsd: parseFloat(document.getElementById('pGastos').value) || 0,
+        }),
+      });
+      document.getElementById('pIngresos').value = '';
+      document.getElementById('pGastos').value = '';
+      cargarPresupuesto();
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+
+  // ---- Movimientos bancarios ----
+  document.getElementById('bMoneda').addEventListener('change', function () {
+    document.getElementById('bTcWrap').style.display = this.value === 'Gs' ? '' : 'none';
+    actualizarPreviewBanco();
+  });
+  document.getElementById('bMonto').addEventListener('input', actualizarPreviewBanco);
+  document.getElementById('bTc').addEventListener('input', actualizarPreviewBanco);
+  function montoUsdCalcBanco() {
+    var monto = parseFloat(document.getElementById('bMonto').value) || 0;
+    var esGs = document.getElementById('bMoneda').value === 'Gs';
+    var tc = parseFloat(document.getElementById('bTc').value) || 5750;
+    return Math.round((esGs ? monto / tc : monto) * 100) / 100;
+  }
+  function actualizarPreviewBanco() {
+    document.getElementById('bMontoPreview').value = fmtUSD(montoUsdCalcBanco());
+  }
+
+  async function cargarBancos() {
+    var rows = await C21Api.api('/api/bancos');
+    var box = document.getElementById('listaBancos');
+    box.innerHTML = '';
+    if (!rows.length) { box.innerHTML = '<p class="sub">Todavía no hay movimientos cargados.</p>'; return; }
+    rows.slice(0, 25).forEach(function (b) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + (b.cuenta || '—') + ' · ' + b.tipo + '</b><span style="font-weight:700;color:var(--gold)">' + fmtUSD(b.monto_usd) + '</span></div>' +
+        '<div class="sub">' + new Date(b.fecha).toLocaleDateString('es-PY') + (b.concepto ? ' · ' + b.concepto : '') + '</div>' +
+        '<div class="row between" style="margin-top:6px">' +
+          (b.conciliado ? '<span class="badge green">Conciliado</span>' : '<button class="btn ghost sm" data-conciliar="' + b.id + '">Marcar conciliado</button>') +
+        '</div>';
+      box.appendChild(row);
+    });
+    box.querySelectorAll('[data-conciliar]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await C21Api.api('/api/bancos/' + btn.dataset.conciliar, { method: 'PATCH', body: JSON.stringify({ conciliado: true }) });
+        cargarBancos();
+      });
+    });
+  }
+
+  document.getElementById('bancoForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('bancoError');
+    errBox.style.display = 'none';
+    var monto = parseFloat(document.getElementById('bMonto').value) || 0;
+    var moneda = document.getElementById('bMoneda').value;
+    try {
+      await C21Api.api('/api/bancos', {
+        method: 'POST',
+        body: JSON.stringify({
+          fecha: document.getElementById('bFecha').value,
+          cuenta: document.getElementById('bCuenta').value || null,
+          tipo: document.getElementById('bTipo').value,
+          montoUsd: montoUsdCalcBanco(),
+          monedaOriginal: moneda,
+          montoOriginal: monto,
+          concepto: document.getElementById('bConcepto').value || null,
+          conciliado: false,
+        }),
+      });
+      e.target.reset();
+      document.getElementById('bMontoPreview').value = '';
+      document.getElementById('bTcWrap').style.display = 'none';
+      cargarBancos();
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+
   var USUARIO = C21Guard.requireRole(['broker', 'gerente', 'administracion'], 1);
   if (USUARIO) {
     cargarFacturas();
     cargarMensualidades();
+    cargarPresupuesto();
+    cargarBancos();
   }
 </script>
 </body>

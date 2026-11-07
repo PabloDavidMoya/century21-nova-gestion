@@ -73,6 +73,8 @@
       <a class="nav-link" href="formularios.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 2h6l5 5v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M9 12h6M9 16h6M9 8h2"/></svg>Formularios</a>
       <a class="nav-link" href="herramientas.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2 2.8-2.8Z"/></svg>Herramientas</a>
       <a class="nav-link" href="#informes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>Mis informes</a>
+      <a class="nav-link" href="#actividad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>Mi actividad semanal</a>
+      <a class="nav-link" href="#leads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>Mis leads asignados</a>
     </nav>
     <div class="sidebar-foot">
       <div class="sidebar-user">
@@ -279,6 +281,37 @@
           </table></div>
         </div>
       </section>
+
+      <section id="actividad">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mi actividad semanal</div>
+        <div class="grid grid-2" style="gap:20px;align-items:start">
+          <div class="card">
+            <form id="actividadForm" style="display:flex;flex-direction:column;gap:14px">
+              <div class="grid grid-2" style="gap:14px">
+                <div class="field"><label>Tipo</label>
+                  <select id="actTipo"><option>Llamada</option><option>Reunión</option><option>Visita</option><option>Prospección</option><option>Farming</option></select>
+                </div>
+                <div class="field"><label>Cantidad</label><input type="number" id="actCantidad" min="1" value="1" required></div>
+              </div>
+              <div class="field"><label>Fecha</label><input type="date" id="actFecha" required></div>
+              <div class="field"><label>Notas (opcional)</label><textarea id="actNotas"></textarea></div>
+              <button type="submit" class="btn primary" style="padding:11px">Cargar actividad</button>
+              <div class="api-error" id="actError"></div>
+            </form>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:14px">Mis últimas actividades</div>
+            <div id="listaActividad" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="leads">
+        <div class="card-title" style="margin-bottom:14px;font-size:1.05rem">Mis leads asignados</div>
+        <div class="card">
+          <div id="listaLeadsAsesor" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </section>
     </main>
   </div>
 </div>
@@ -417,6 +450,9 @@
     document.getElementById('infNombre').textContent = usuario.nombre;
     document.getElementById('infFecha').textContent = new Date().toLocaleDateString('es-PY');
     renderInformes();
+
+    cargarActividad();
+    cargarLeadsAsesor();
   }
 
   var CONFIRMADOS_MIOS = [];
@@ -583,6 +619,81 @@
       errBox.style.display = '';
     }
   });
+
+  // ---- Mi actividad semanal ----
+  var actTipoBadge = { Llamada: 'gold-lvl', Reunión: 'gold-lvl', Visita: 'green', Prospección: 'gold-lvl', Farming: 'gold-lvl' };
+
+  async function cargarActividad() {
+    var filas = await C21Api.api('/api/actividad'); // ya viene filtrado al propio asesor desde el backend
+    var box = document.getElementById('listaActividad');
+    box.innerHTML = '';
+    if (!filas.length) { box.innerHTML = '<p class="sub">Todavía no cargaste actividad.</p>'; return; }
+    filas.slice(0, 20).forEach(function (a) {
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + a.tipo + '</b><span class="badge ' + (actTipoBadge[a.tipo] || 'gold-lvl') + '">' + a.cantidad + '</span></div>' +
+        '<div class="sub">' + new Date(a.fecha).toLocaleDateString('es-PY') + '</div>' +
+        (a.notas ? '<div class="sub" style="font-style:italic">' + a.notas + '</div>' : '');
+      box.appendChild(row);
+    });
+  }
+
+  document.getElementById('actFecha').value = hoyISO();
+
+  document.getElementById('actividadForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var errBox = document.getElementById('actError');
+    errBox.style.display = 'none';
+    try {
+      await C21Api.api('/api/actividad', {
+        method: 'POST',
+        body: JSON.stringify({
+          asesorId: USUARIO.asesorId,
+          fecha: document.getElementById('actFecha').value,
+          tipo: document.getElementById('actTipo').value,
+          cantidad: Number(document.getElementById('actCantidad').value) || 1,
+          notas: document.getElementById('actNotas').value || null,
+        }),
+      });
+      e.target.reset();
+      document.getElementById('actFecha').value = hoyISO();
+      cargarActividad();
+    } catch (ex) {
+      errBox.textContent = ex.message;
+      errBox.style.display = '';
+    }
+  });
+
+  // ---- Mis leads asignados ----
+  var leadEstadoBadge = { Nuevo: 'gold-lvl', 'En gestión': 'gold-lvl', 'Visita agendada': 'green', 'Caído': 'red', Cerrado: 'green' };
+  var LEAD_ESTADOS = ['En gestión', 'Visita agendada', 'Caído', 'Cerrado'];
+
+  async function cargarLeadsAsesor() {
+    var leads = await C21Api.api('/api/leads'); // ya viene filtrado al propio asesor desde el backend
+    var box = document.getElementById('listaLeadsAsesor');
+    box.innerHTML = '';
+    if (!leads.length) { box.innerHTML = '<p class="sub">No tenés leads asignados por ahora.</p>'; return; }
+    leads.forEach(function (l) {
+      var botones = LEAD_ESTADOS.filter(function (e) { return e !== l.estado; }).map(function (e) {
+        return '<button class="btn ghost sm" data-marcar-lead="' + l.id + '" data-estado="' + e + '">' + e + '</button>';
+      }).join('');
+      var row = document.createElement('div');
+      row.style.cssText = 'border-bottom:1px solid var(--border);padding-bottom:10px';
+      row.innerHTML =
+        '<div class="row between"><b style="font-size:.88rem">' + l.nombre_interesado + '</b>' +
+        '<span class="badge ' + (leadEstadoBadge[l.estado] || 'bronze') + '">' + l.estado + '</span></div>' +
+        '<div class="sub">' + (l.fuente || '—') + (l.contacto ? ' · ' + l.contacto : '') + '</div>' +
+        '<div class="row gap-2" style="margin-top:6px;flex-wrap:wrap">' + botones + '</div>';
+      box.appendChild(row);
+    });
+    box.querySelectorAll('[data-marcar-lead]').forEach(function (btn) {
+      btn.addEventListener('click', async function () {
+        await C21Api.api('/api/leads/' + btn.dataset.marcarLead, { method: 'PATCH', body: JSON.stringify({ estado: btn.dataset.estado }) });
+        cargarLeadsAsesor();
+      });
+    });
+  }
 
   document.getElementById('btnImprimir').addEventListener('click', function () { window.print(); });
   document.getElementById('btnDescargar').addEventListener('click', function () {
